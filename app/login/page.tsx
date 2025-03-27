@@ -1,7 +1,7 @@
 // app/login/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
