@@ -30,8 +30,6 @@ export default function LoginPage() {
         },
         body: JSON.stringify(loginData),
       });
-      console.log(response);
-      console.log("hello");
 
       // Check if the response is successful
       if (!response.ok) {
