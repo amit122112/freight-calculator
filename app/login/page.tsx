@@ -1,4 +1,3 @@
-// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,12 +15,40 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    
-    setTimeout(() => {
+    // Create the request body
+    const loginData = { email, password };
+
+    try {
+      // Make the API request to your backend
+      const response = await fetch("https://hungryblogs.com/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*", // Allow all origins (only if needed on the client-side)
+          "Access-Control-Allow-Methods": "POST, OPTIONS", // Allow POST and OPTIONS methods
+          "Access-Control-Allow-Headers": "Content-Type", // Allow Content-Type header
+        },
+        body: JSON.stringify(loginData),
+      });
+      console.log(response);
+      console.log("hello");
+
+      // Check if the response is successful
+      if (!response.ok) {
+        // If login fails, display the error
+        const errorData = await response.json();
+        setError(errorData.message || "An error occurred during login.");
+        setLoading(false);
+        return;
+      }
+
+      // If login is successful, redirect to the dashboard or home page
+      router.push("/dashboard");
+    } catch (error) {
+      console.log(error);
+      setError("Network error occurred. Please try again.");
       setLoading(false);
-      // This will navigate to a dashboard page later.
-      router.push("/");
-    }, 1000);
+    }
   };
 
   return (
