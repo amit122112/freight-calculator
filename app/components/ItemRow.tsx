@@ -99,37 +99,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-black mb-1">Value ($)</label>
-          <input
-            type="number"
-            name="value"
-            value={item.value}
-            onChange={handleChange}
-            step="0.01"
-            min="0"
-            placeholder="Value"
-            className="w-full border p-2 rounded-md"
-            required
-          />
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-black mb-1">Insurance</label>
-          <select
-            name="requiresInsurance"
-            value={item.requiresInsurance ? "yes" : "no"}
-            onChange={(e) => {
-              const requiresInsurance = e.target.value === "yes"
-              onChange(index, { ...item, requiresInsurance })
-            }}
-            className="w-full border p-2 rounded-md"
-            required
-          >
-            <option value="no">Not Required</option>
-            <option value="yes">Required</option>
-          </select>
-        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mt-4">

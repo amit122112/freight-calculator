@@ -1,7 +1,7 @@
 // app/login/page.tsx
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { EquityLogo } from "../components/Logo";

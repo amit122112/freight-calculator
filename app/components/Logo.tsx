@@ -1,4 +1,4 @@
-//import Image from "next/image"
+import Image from "next/image"
 
 export function EquityLogo({
   className = "",
@@ -7,7 +7,7 @@ export function EquityLogo({
 }: { className?: string; width?: number; height?: number }) {
   return (
     <div className={`relative ${className}`} style={{ width, height }}>
-      <img
+      <Image
         src="https://www.equitylogistics.com.au/wp-content/uploads/2016/02/EquityLogo.png"
         alt="Equity Logistics Logo"
         width={width}
