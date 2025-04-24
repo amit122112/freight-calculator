@@ -5,23 +5,24 @@ import { useState } from "react"
 import { Plus } from 'lucide-react'
 import { useRouter } from "next/navigation"
 import ItemRow from "./ItemRow"
-import type { ShipmentFormData, ShipmentItem } from "../types/shipment"
+import type { ShipmentFormData, ShipmentItem } from "../app/types/shipment"
 
 export default function ShipmentForm() {
   const router = useRouter()
 
   // Default empty item template
-  const emptyItem: ShipmentItem = {
+  const emptyItem: ShipmentItem ={
     description: "",
     category: "",
     quantity: "1",
-    weight: "",
+    weight:"",
     dimensions: {
       length: "",
       width: "",
-      height: "",
+      height: ""
     },
   }
+  
 
   const [formData, setFormData] = useState<ShipmentFormData>({
     pickupAddress: "",
@@ -88,6 +89,7 @@ export default function ShipmentForm() {
         item.dimensions.width &&
         item.dimensions.height,
     )
+  
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-4xl">
@@ -141,7 +143,7 @@ export default function ShipmentForm() {
       </div>
 
       {/* Items Section */}
-      <div className="mb-6">
+      <div className="mb-6 text-gray-500">
         <div className="flex border-gray-400 text-black justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-black">Items</h3>
           <button

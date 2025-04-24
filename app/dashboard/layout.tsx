@@ -1,7 +1,7 @@
 import type React from "react"
-import UserSidebar from "../components/UserSidebar"
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
+import UserSidebar from "../../components/UserSidebar"
+import Navbar from "../../components/Navbar"
+import Footer from "../../components/Footer"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (

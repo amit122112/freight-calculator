@@ -2,10 +2,24 @@
 
 import { useState } from "react"
 import { EquityLogo } from "./Logo"
-import { Bell, User, LogOut } from "lucide-react"
+import { Bell, User, LogOut } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { logoutUser } from "@/lib/auth"
 
 export default function Navbar({ userRole = "user" }: { userRole?: string }) {
   const [showDropdown, setShowDropdown] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+      router.push("/login")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Still redirect to login even if API call fails
+      router.push("/login")
+    }
+  }
 
   return (
     <header className="bg-white border-b shadow-sm">
@@ -42,10 +56,13 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
                   Settings
                 </a>
                 <div className="border-t my-1"></div>
-                <a href="/login" className="flex items-center px-4 py-2 text-red-600 hover:bg-gray-100">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                >
                   <LogOut size={16} className="mr-2" />
                   Logout
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -54,4 +71,3 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
     </header>
   )
 }
-

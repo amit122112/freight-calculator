@@ -1,6 +1,6 @@
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 // Simulating user role detection (You will replace this with real logic)
 function getUserRole() {

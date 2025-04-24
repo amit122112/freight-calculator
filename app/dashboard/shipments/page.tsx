@@ -1,6 +1,6 @@
 "use client"
 
-import ShipmentForm from "../../components/ShipmentForm"
+import ShipmentForm from "../../../components/ShipmentForm"
 
 export default function ShipmentsPage() {
   return (

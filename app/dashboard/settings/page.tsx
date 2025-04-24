@@ -8,7 +8,7 @@ export default function SettingsPage() {
 
   // Redirect to account settings by default
   useEffect(() => {
-    router.push("/admin/settings")
+    router.push("/dashboard/settings/account")
   }, [router])
 
   return (

@@ -3,15 +3,20 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Lock, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react"
+//import {loginUser} from "../../lib/auth";
 
-import { EquityLogo } from "../components/Logo";
+import { EquityLogo } from "../../components/Logo";
 // Regex expression for email validation. Gmail for now
-const emailRegex = /([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@gmail([\.])com/g
+//const emailRegex = /([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@gmail([\.])com/
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("eve.holt@reqres.in");
   const [emailError, setEmailError] = useState("")
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("cityslicka");
+  const [showPassword, setShowPassword] = useState(false)
+  const [token, setToken] = useState('');
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -36,7 +41,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
+    setToken("");
     // Final validation for email on submit
     if (!emailRegex.test(email)) {
       setEmailError("Please enter a valid email address.")
@@ -46,11 +51,29 @@ export default function Login() {
     setLoading(true);
 
     
-    setTimeout(() => {
-      setLoading(false);
-      // This will navigate to a dashboard page later.
-      router.push("/admin");
-    }, 1000);
+    const handleLogin = async () => {
+      setError('');
+      setToken('');
+  
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+  
+        const data = await res.json();
+  
+        if (res.ok) {
+          setToken(data.token);
+          localStorage.setItem('authToken', data.token); // Save it if you need later
+        } else {
+          setError(data.error || 'Login failed');
+        }
+      } catch (err) {
+        setError('Network error or server not responding');
+      }
+    };
   };
 
   return (
@@ -120,6 +143,7 @@ export default function Login() {
               className="w-full px-4 py-2 mt-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
             />
           </div>
+          
 
           <div className="flex items-center">
             <input
@@ -132,7 +156,9 @@ export default function Login() {
             </label>
           </div>
 
+
           <button
+            onClick={handleSubmit}
             type="submit"
             disabled={loading}
             className="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
@@ -144,3 +170,5 @@ export default function Login() {
     </div>
   );
 }
+
+

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import UserForm from "../../../components/UserForm"
+import UserForm from "../../../../components/UserForm"
 
 export default function AddUserPage() {
   return (

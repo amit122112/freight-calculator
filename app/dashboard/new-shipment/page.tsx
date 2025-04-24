@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 //import ItemRow from "../../components/ItemRow"
 //import type { ShipmentFormData, ShipmentItem } from "../../types/shipment"
-import ShipmentForm from "@/app/components/ShipmentForm"
+import ShipmentForm from "@/components/ShipmentForm"
 
 export default function NewShipment() {
   

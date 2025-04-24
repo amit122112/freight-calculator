@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check } from "lucide-react"
-import type { UserFormData } from "../types/user"
+import type { UserFormData } from "../app/types/user"
 
 export default function UserForm() {
   const router = useRouter()

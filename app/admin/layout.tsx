@@ -1,7 +1,7 @@
 import type React from "react"
-import Sidebar from "../components/Sidebar"
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
+import Sidebar from "../../components/Sidebar"
+import Navbar from "../../components/Navbar"
+import Footer from "../../components/Footer"
 
 // This function should eventually be replaced with actual authentication logic
 function getUserRole() {
