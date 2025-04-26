@@ -4,21 +4,20 @@
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react"
-//import {loginUser} from "../../lib/auth";
-
 import { EquityLogo } from "../../components/Logo";
 // Regex expression for email validation. Gmail for now
 //const emailRegex = /([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@gmail([\.])com/
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
-  const [email, setEmail] = useState("eve.holt@reqres.in");
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("")
-  const [password, setPassword] = useState("cityslicka");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false)
   const [token, setToken] = useState('');
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
   //This will validate email format on blur
@@ -42,39 +41,51 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setToken("");
-    // Final validation for email on submit
-    if (!emailRegex.test(email)) {
-      setEmailError("Please enter a valid email address.")
-      return
-    }
-
     setLoading(true);
-
-    
-    const handleLogin = async () => {
-      setError('');
-      setToken('');
   
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
+    // Validate email format before making request
+    if (!emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
   
-        const data = await res.json();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
   
-        if (res.ok) {
-          setToken(data.token);
-          localStorage.setItem('authToken', data.token); // Save it if you need later
-        } else {
-          setError(data.error || 'Login failed');
-        }
-      } catch (err) {
-        setError('Network error or server not responding');
+      const data = await res.json();
+  
+      if (!res.ok) {
+        const msg = data.message || data.error || 'Login failed';
+        setError(msg);
+        setLoading(false);
+        return;
       }
-    };
+  
+      // Success - store token and optionally redirect
+      setToken(data.token);
+      localStorage.setItem('authToken', data.token);
+      setLoading(false);
+  
+      // Optional: redirect to dashboard or homepage
+      if (data.user && data.user.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
+    } catch (err) {
+      setError("Network error or server not responding.");
+      setLoading(false);
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row items-center justify-center md:justify-between px-4 md:px-32 py-12 bg-gray-100">

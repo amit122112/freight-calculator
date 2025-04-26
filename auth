@@ -1,0 +1,2733 @@
+[V0_FILE]typescriptreact:file="tailwind.config.js" isMerged="true"
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+[V0_FILE]typescriptreact:file="app/globals.css" isMerged="true"
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+[V0_FILE]typescriptreact:file="postcss.config.js" isMerged="true"
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+[V0_FILE]typescriptreact:file="app/admin/layout.tsx" isMerged="true"
+import type React from "react"
+import Sidebar from "@/components/Sidebar"
+import Navbar from "@/components/Navbar"
+import Footer from "@/components/Footer"
+
+// This function should eventually be replaced with actual authentication logic
+function getUserRole() {
+  return "admin" // Change this to "user" to test different views
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const role = getUserRole() // Fetch role dynamically
+
+  return (
+    <div className="flex bg-white min-h-screen">
+      {/* Show Sidebar for all authenticated users */}
+      <Sidebar userRole={role} />
+
+      <div className="flex-1 flex flex-col">
+        <Navbar userRole={role} />
+        <main className="flex-1 p-6">{children}</main>
+        <Footer />
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="components/Sidebar.tsx" isMerged="true"
+"use client"
+
+import Link from "next/link"
+import { Home, Users, Package, ClipboardList, Settings, Hash, CreditCard } from "lucide-react"
+
+type SidebarProps = {
+  userRole?: string
+}
+
+export default function Sidebar({ userRole = "user" }: SidebarProps) {
+  // Common menu items for all users
+  const commonMenuItems = [
+    { icon: Home, label: "Dashboard", href: "/admin" },
+    { icon: Settings, label: "Settings", href: "/admin/settings" },
+  ]
+
+  // Admin-specific menu items
+  const adminMenuItems = [
+    { icon: Users, label: "User Management", href: "/admin/users" },
+    { icon: Package, label: "Rate Management", href: "/admin/rates" },
+    { icon: ClipboardList, label: "Quote Requests", href: "/admin/quotes" },
+  ]
+
+  // User-specific menu items
+  const userMenuItems = [
+    { icon: Users, label: "Profile", href: "/admin/profile" },
+    { icon: Hash, label: "Update Password", href: "/admin/password" },
+    { icon: CreditCard, label: "View Carriers", href: "/admin/carriers" },
+  ]
+
+  // Determine which menu items to show based on role
+  const menuItems = [...commonMenuItems, ...(userRole === "admin" ? adminMenuItems : userMenuItems)]
+
+  return (
+    <aside className="w-64 h-screen bg-white border-r shadow-md">
+      <div className="p-4 border-b">
+        <h2 className="text-xl font-bold text-gray-800">Equity Logistics</h2>
+        <p className="text-sm text-gray-500">{userRole === "admin" ? "Admin Portal" : "Customer Portal"}</p>
+      </div>
+
+      <nav className="p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item, index) => (
+            <li key={index}>
+              <Link
+                href={item.href}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded text-gray-700 hover:text-gray-900"
+              >
+                <item.icon size={20} className="text-gray-600" />
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+  )
+}
+[V0_FILE]typescriptreact:file="components/Logo.tsx" isMerged="true"
+export function EquityLogo({
+  className = "",
+  width = 120,
+  height = 40,
+}: { className?: string; width?: number; height?: number }) {
+  return (
+    <div className={`relative ${className}`} style={{ width, height }}>
+      <img
+        src="/images/equity-logo.png"
+        alt="Equity Logistics Logo"
+        width={width}
+        height={height}
+        className="object-contain"
+      />
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="components/Footer.tsx" isMerged="true"
+"use client"
+
+export default function Footer() {
+  const currentYear = new Date().getFullYear()
+
+  return (
+    <footer className="w-full text-center py-4 bg-gray-100 border-t">
+      <p className="text-sm text-gray-500">© {currentYear} Equity Logistics. All rights reserved.</p>
+    </footer>
+  )
+}
+[V0_FILE]typescriptreact:file="app/admin/shipments/page.tsx" isMerged="true"
+"use client"
+
+import ShipmentForm from "@/components/ShipmentForm"
+
+export default function ShipmentsPage() {
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Create Shipment</h1>
+      <ShipmentForm />
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/admin/page.tsx" isEdit="true" isQuickEdit="true" isMerged="true"
+"use client"
+
+import { Package, Users, ClipboardList, Pencil, Delete } from "lucide-react"
+
+export default function AdminDashboard() {
+  // In a real application, you would fetch this data from your API
+  const dashboardStats = {
+    activeShipments: 24,
+    users: 156,
+    quoteRequests: 12,
+  }
+
+  return (
+    <div className="bg-white">
+      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+      <p className="mb-6">Welcome, Admin! Manage users and shipments here.</p>
+
+      {/* Dashboard stats section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-100">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Package className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-600">Active Shipments</h3>
+                <p className="text-2xl font-bold text-gray-800">{dashboardStats.activeShipments}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 p-4 rounded-lg shadow border border-green-100">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg mr-3">
+                <Users className="text-green-600" size={24} />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-600">Users</h3>
+                <p className="text-2xl font-bold text-gray-800">{dashboardStats.users}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-yellow-50 p-4 rounded-lg shadow border border-yellow-100">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+                <ClipboardList className="text-yellow-600" size={24} />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-600">Quote Requests</h3>
+                <p className="text-2xl font-bold text-gray-800">{dashboardStats.quoteRequests}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent activity section */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+        <div className="bg-white rounded-lg shadow border">
+          <div className="p-4 border-b">
+            <h3 className="font-medium">Latest Shipments</h3>
+          </div>
+          <div className="p-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Origin
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Destination
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr>
+                  <td className="px-4 py-3 text-sm text-gray-900">SH-1001</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Sydney</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Melbourne</td>
+                  <td className="px-4 py-3 text-sm">
+                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">In Transit</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Delete size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm text-gray-900">SH-1002</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Brisbane</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Perth</td>
+                  <td className="px-4 py-3 text-sm">
+                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Processing</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Delete size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm text-gray-900">SH-1003</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Adelaide</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">Darwin</td>
+                  <td className="px-4 py-3 text-sm">
+                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="px-2 py-1 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+                      >
+                        <Delete size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/dashboard/page.tsx" isMerged="true"
+"use client"
+
+import { useState } from "react"
+import { Package, Clock, TrendingUp, Plus, Search } from "lucide-react"
+import Link from "next/link"
+
+export default function UserDashboard() {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Mock data - in a real app, this would come from an API
+  const userStats = {
+    activeShipments: 3,
+    pendingShipments: 1,
+    completedShipments: 12,
+  }
+
+  const recentShipments = [
+    { id: "SH-2001", origin: "Melbourne", destination: "Sydney", status: "In Transit", date: "2023-04-10" },
+    { id: "SH-1986", origin: "Brisbane", destination: "Perth", status: "Delivered", date: "2023-04-05" },
+    { id: "SH-1972", origin: "Sydney", destination: "Adelaide", status: "Processing", date: "2023-04-01" },
+    { id: "SH-1965", origin: "Perth", destination: "Darwin", status: "Pending", date: "2023-03-28" },
+  ]
+
+  const filteredShipments = searchQuery
+    ? recentShipments.filter(
+        (shipment) =>
+          shipment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shipment.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shipment.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shipment.status.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : recentShipments
+
+  const getStatusClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "in transit":
+        return "bg-blue-100 text-blue-800"
+      case "delivered":
+        return "bg-green-100 text-green-800"
+      case "processing":
+        return "bg-purple-100 text-purple-800"
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  return (
+    <div className="bg-white">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">My Dashboard</h1>
+        <Link
+          href="/dashboard/new-shipment"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={16} />
+          <span>New Shipment</span>
+        </Link>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-100">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <Package className="text-blue-600" size={24} />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-600">Active Shipments</h3>
+              <p className="text-2xl font-bold text-gray-800">{userStats.activeShipments}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 p-4 rounded-lg shadow border border-yellow-100">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+              <Clock className="text-yellow-600" size={24} />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-600">Pending Shipments</h3>
+              <p className="text-2xl font-bold text-gray-800">{userStats.pendingShipments}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-green-50 p-4 rounded-lg shadow border border-green-100">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg mr-3">
+              <TrendingUp className="text-green-600" size={24} />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-600">Completed Shipments</h3>
+              <p className="text-2xl font-bold text-gray-800">{userStats.completedShipments}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Shipments */}
+      <div className="bg-white rounded-lg shadow border">
+        <div className="p-4 border-b flex justify-between items-center">
+          <h2 className="text-lg font-semibold">My Shipments</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search shipments..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tracking ID
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Origin
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Destination
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredShipments.length > 0 ? (
+                filteredShipments.map((shipment, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-blue-600">{shipment.id}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.origin}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.destination}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusClass(shipment.status)}`}>
+                        {shipment.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.date}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <Link
+                        href={`/dashboard/shipment/${shipment.id}`}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        View Details
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                    No shipments found matching your search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="p-4 border-t">
+          <Link href="/dashboard/all-shipments" className="text-blue-600 hover:text-blue-800 font-medium">
+            View All Shipments
+          </Link>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link href="/dashboard/new-shipment">
+            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+              <h3 className="font-medium text-gray-800 mb-2">Create New Shipment</h3>
+              <p className="text-sm text-gray-600">Request a new shipment quote or booking</p>
+            </div>
+          </Link>
+          <Link href="/dashboard/track">
+            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+              <h3 className="font-medium text-gray-800 mb-2">Track Shipment</h3>
+              <p className="text-sm text-gray-600">Enter a tracking number to check status</p>
+            </div>
+          </Link>
+          <Link href="/dashboard/support">
+            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+              <h3 className="font-medium text-gray-800 mb-2">Contact Support</h3>
+              <p className="text-sm text-gray-600">Get help with your shipments</p>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/dashboard/loading.tsx" isFixed="true" isMerged="true"
+export default function Loading() {
+  return null
+}
+[V0_FILE]typescriptreact:file="app/dashboard/layout.tsx" isMerged="true"
+import type React from "react"
+import UserSidebar from "@/components/UserSidebar"
+import Navbar from "@/components/Navbar"
+import Footer from "@/components/Footer"
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex bg-white min-h-screen">
+      {/* User-specific sidebar */}
+      <UserSidebar />
+
+      <div className="flex-1 flex flex-col">
+        <Navbar userRole="user" />
+        <main className="flex-1 p-6">{children}</main>
+        <Footer />
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="components/UserSidebar.tsx" isMerged="true"
+"use client"
+
+import Link from "next/link"
+import { Home, Package, TrendingUp, CreditCard, User, MessageSquare, Settings } from "lucide-react"
+
+export default function UserSidebar() {
+  // Menu items for regular users
+  const menuItems = [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: Package, label: "My Shipments", href: "/dashboard/all-shipments" },
+    { icon: TrendingUp, label: "Track Shipment", href: "/dashboard/track" },
+    { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
+    { icon: User, label: "My Profile", href: "/dashboard/profile" },
+    { icon: MessageSquare, label: "Support", href: "/dashboard/support" },
+    { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  ]
+
+  return (
+    <aside className="w-64 h-screen bg-white border-r shadow-md">
+      <div className="p-4 border-b">
+        <h2 className="text-xl font-bold text-gray-800">Equity Logistics</h2>
+        <p className="text-sm text-gray-500">Customer Portal</p>
+      </div>
+
+      <nav className="p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item, index) => (
+            <li key={index}>
+              <Link
+                href={item.href}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded text-gray-700 hover:text-gray-900"
+              >
+                <item.icon size={20} className="text-gray-600" />
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+  )
+}
+[V0_FILE]typescriptreact:file="types/shipment.ts" isMerged="true"
+export interface ShipmentItem {
+  description: string
+  category: string
+  quantity: string
+  weight: string
+  value: string
+  requiresInsurance: boolean
+  dimensions: {
+    length: string
+    width: string
+    height: string
+  }
+}
+
+export interface ShipmentFormData {
+  pickupAddress: string
+  deliveryAddress: string
+  shippingOption: string
+  specialInstructions: string
+  items: ShipmentItem[]
+}
+[V0_FILE]typescriptreact:file="components/ItemRow.tsx" isEdit="true" isQuickEdit="true" isMerged="true"
+"use client"
+
+import type React from "react"
+
+import { X } from "lucide-react"
+import type { ShipmentItem } from "@/types/shipment"
+
+interface ItemRowProps {
+  item: ShipmentItem
+  index: number
+  onChange: (index: number, updatedItem: ShipmentItem) => void
+  onRemove: (index: number) => void
+  isRemovable: boolean
+}
+
+export default function ItemRow({ item, index, onChange, onRemove, isRemovable }: ItemRowProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    onChange(index, { ...item, [name]: value })
+  }
+
+  return (
+    <div className="p-4 border rounded-md bg-gray-50 mb-4">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-medium text-black">Item #{index + 1}</h3>
+        {isRemovable && (
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+          >
+            <X size={18} />
+            <span className="sr-only">Remove Item</span>
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Description</label>
+          <input
+            type="text"
+            name="description"
+            value={item.description}
+            onChange={handleChange}
+            placeholder="Item description"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Category</label>
+          <select
+            name="category"
+            value={item.category}
+            onChange={handleChange}
+            className="w-full border p-2 rounded-md"
+            required
+          >
+            <option value="">Select Category</option>
+            <option value="electronics">Electronics</option>
+            <option value="clothing">Clothing</option>
+            <option value="furniture">Furniture</option>
+            <option value="documents">Documents</option>
+            <option value="fragile">Fragile Items</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Quantity</label>
+          <input
+            type="number"
+            name="quantity"
+            value={item.quantity}
+            onChange={handleChange}
+            min="1"
+            placeholder="Qty"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Weight (kg)</label>
+          <input
+            type="number"
+            name="weight"
+            value={item.weight}
+            onChange={handleChange}
+            step="0.01"
+            min="0.01"
+            placeholder="Weight"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Value ($)</label>
+          <input
+            type="number"
+            name="value"
+            value={item.value}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="Value"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Insurance</label>
+          <select
+            name="requiresInsurance"
+            value={item.requiresInsurance ? "yes" : "no"}
+            onChange={(e) => {
+              const requiresInsurance = e.target.value === "yes"
+              onChange(index, { ...item, requiresInsurance })
+            }}
+            className="w-full border p-2 rounded-md"
+            required
+          >
+            <option value="no">Not Required</option>
+            <option value="yes">Required</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mt-4">
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Length (cm)</label>
+          <input
+            type="number"
+            name="length"
+            value={item.dimensions.length}
+            onChange={(e) => {
+              onChange(index, {
+                ...item,
+                dimensions: { ...item.dimensions, length: e.target.value },
+              })
+            }}
+            step="0.1"
+            min="0.1"
+            placeholder="Length"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Width (cm)</label>
+          <input
+            type="number"
+            name="width"
+            value={item.dimensions.width}
+            onChange={(e) => {
+              onChange(index, {
+                ...item,
+                dimensions: { ...item.dimensions, width: e.target.value },
+              })
+            }}
+            step="0.1"
+            min="0.1"
+            placeholder="Width"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">Height (cm)</label>
+          <input
+            type="number"
+            name="height"
+            value={item.dimensions.height}
+            onChange={(e) => {
+              onChange(index, {
+                ...item,
+                dimensions: { ...item.dimensions, height: e.target.value },
+              })
+            }}
+            step="0.1"
+            min="0.1"
+            placeholder="Height"
+            className="w-full border p-2 rounded-md"
+            required
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/dashboard/shipment/[id]/page.tsx" isEdit="true" isQuickEdit="true" isMerged="true"
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Package, MapPin, Calendar, Truck, ArrowLeft, Box } from "lucide-react"
+import Link from "next/link"
+
+export default function ShipmentDetail() {
+  const params = useParams()
+  const router = useRouter()
+  const shipmentId = params.id
+  const [loading, setLoading] = useState(true)
+
+  // Mock shipment data - in a real app, this would be fetched from an API
+  const [shipment, setShipment] = useState({
+    id: shipmentId,
+    origin: "Melbourne",
+    destination: "Sydney",
+    status: "In Transit",
+    date: "2023-04-10",
+    estimatedDelivery: "2023-04-15",
+    carrier: "Express Logistics",
+    items: [
+      {
+        description: "Laptop Computer",
+        category: "electronics",
+        quantity: "2",
+        weight: "3.5",
+        value: "1200",
+        requiresInsurance: true,
+        dimensions: { length: "35", width: "25", height: "5" },
+      },
+      {
+        description: "Office Supplies",
+        category: "other",
+        quantity: "5",
+        weight: "7.2",
+        value: "150",
+        requiresInsurance: false,
+        dimensions: { length: "40", width: "30", height: "20" },
+      },
+      {
+        description: "Marketing Materials",
+        category: "documents",
+        quantity: "100",
+        weight: "15",
+        value: "300",
+        requiresInsurance: false,
+        dimensions: { length: "50", width: "40", height: "30" },
+      },
+    ],
+    trackingEvents: [
+      { date: "2023-04-10 08:30", location: "Melbourne Warehouse", description: "Shipment picked up" },
+      { date: "2023-04-10 14:45", location: "Melbourne Distribution Center", description: "Shipment processed" },
+      { date: "2023-04-11 09:15", location: "In Transit", description: "Shipment in transit to Sydney" },
+      {
+        date: "2023-04-12 10:30",
+        location: "Sydney Distribution Center",
+        description: "Shipment arrived at destination city",
+      },
+    ],
+  })
+
+  // Calculate totals
+  const totalItems = shipment.items.reduce((sum, item) => sum + Number.parseInt(item.quantity), 0)
+  const totalWeight = shipment.items.reduce(
+    (sum, item) => sum + Number.parseFloat(item.weight) * Number.parseInt(item.quantity),
+    0,
+  )
+  const totalValue = shipment.items.reduce(
+    (sum, item) => sum + Number.parseFloat(item.value) * Number.parseInt(item.quantity),
+    0,
+  )
+
+  // Simulate API fetch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white">
+      <div className="mb-6">
+        <Link href="/dashboard" className="flex items-center text-blue-600 hover:text-blue-800 mb-4">
+          <ArrowLeft size={16} className="mr-1" />
+          Back to Dashboard
+        </Link>
+        <h1 className="text-2xl font-bold text-black">Shipment Details</h1>
+        <p className="text-gray-700">Tracking ID: {shipment.id}</p>
+      </div>
+
+      {/* Shipment Overview */}
+      <div className="bg-white rounded-lg shadow border mb-6">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-black">Shipment Overview</h2>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <MapPin className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Origin</h3>
+                <p className="font-medium text-black">{shipment.origin}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <MapPin className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Destination</h3>
+                <p className="font-medium text-black">{shipment.destination}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Calendar className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Ship Date</h3>
+                <p className="font-medium text-black">{shipment.date}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Calendar className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Est. Delivery</h3>
+                <p className="font-medium text-black">{shipment.estimatedDelivery}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Box className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Total Items</h3>
+                <p className="font-medium text-black">{totalItems} items</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Package className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Total Weight</h3>
+                <p className="font-medium text-black">{totalWeight.toFixed(2)} kg</p>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Truck className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Carrier</h3>
+                <p className="font-medium text-black">{shipment.carrier}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Items List */}
+      <div className="bg-white rounded-lg shadow border mb-6">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-black">Shipment Items</h2>
+        </div>
+        <div className="p-4">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Quantity
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Weight
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Dimensions
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Value
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Insurance
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {shipment.items.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-black">{item.description}</td>
+                    <td className="px-4 py-3 text-sm text-black capitalize">{item.category}</td>
+                    <td className="px-4 py-3 text-sm text-black">{item.quantity}</td>
+                    <td className="px-4 py-3 text-sm text-black">{item.weight} kg</td>
+                    <td className="px-4 py-3 text-sm text-black">
+                      {item.dimensions.length} × {item.dimensions.width} × {item.dimensions.height} cm
+                    </td>
+                    <td className="px-4 py-3 text-sm text-black">${item.value}</td>
+                    <td className="px-4 py-3 text-sm text-black">
+                      {item.requiresInsurance ? (
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Yes</span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">No</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50">
+                <tr>
+                  <td colSpan={2} className="px-4 py-3 text-sm font-medium text-gray-900">
+                    Totals
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{totalItems}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{totalWeight.toFixed(2)} kg</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900"></td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">${totalValue.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Tracking Timeline */}
+      <div className="bg-white rounded-lg shadow border">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-black">Tracking History</h2>
+        </div>
+        <div className="p-4">
+          <div className="relative">
+            {shipment.trackingEvents.map((event, index) => (
+              <div key={index} className="mb-8 flex">
+                <div className="flex flex-col items-center mr-4">
+                  <div className="rounded-full bg-blue-500 text-white flex items-center justify-center w-8 h-8">
+                    {index + 1}
+                  </div>
+                  {index < shipment.trackingEvents.length - 1 && <div className="h-full w-0.5 bg-blue-500"></div>}
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg border flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-medium text-black">{event.location}</h3>
+                    <span className="text-sm text-gray-500">{event.date}</span>
+                  </div>
+                  <p className="text-black">{event.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="components/ShipmentForm.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import ItemRow from "./ItemRow"
+import type { ShipmentFormData, ShipmentItem } from "@/types/shipment"
+
+export default function ShipmentForm() {
+  const router = useRouter()
+
+  // Default empty item template
+  const emptyItem: ShipmentItem = {
+    description: "",
+    category: "",
+    quantity: "1",
+    weight: "",
+    value: "",
+    requiresInsurance: false,
+    dimensions: {
+      length: "",
+      width: "",
+      height: "",
+    },
+  }
+
+  const [formData, setFormData] = useState<ShipmentFormData>({
+    pickupAddress: "",
+    deliveryAddress: "",
+    shippingOption: "",
+    specialInstructions: "",
+    items: [{ ...emptyItem }], // Start with one empty item
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleItemChange = (index: number, updatedItem: ShipmentItem) => {
+    const updatedItems = [...formData.items]
+    updatedItems[index] = updatedItem
+    setFormData({ ...formData, items: updatedItems })
+  }
+
+  const addItem = () => {
+    setFormData({
+      ...formData,
+      items: [...formData.items, { ...emptyItem }],
+    })
+  }
+
+  const removeItem = (index: number) => {
+    const updatedItems = [...formData.items]
+    updatedItems.splice(index, 1)
+    setFormData({ ...formData, items: updatedItems })
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Handle form submission
+    console.log("Form submitted:", formData)
+    // You would typically send this data to your API here
+
+    // Simulate successful submission
+    setTimeout(() => {
+      router.push("/dashboard")
+    }, 1000)
+  }
+
+  // Calculate total weight and value
+  const totalWeight = formData.items.reduce(
+    (sum, item) => sum + (Number.parseFloat(item.weight) * Number.parseInt(item.quantity) || 0),
+    0,
+  )
+
+  const totalValue = formData.items.reduce(
+    (sum, item) => sum + (Number.parseFloat(item.value) * Number.parseInt(item.quantity) || 0),
+    0,
+  )
+
+  const isFormValid =
+    formData.pickupAddress &&
+    formData.deliveryAddress &&
+    formData.shippingOption &&
+    formData.items.length > 0 &&
+    formData.items.every(
+      (item) =>
+        item.description &&
+        item.category &&
+        item.quantity &&
+        item.weight &&
+        item.value &&
+        item.dimensions.length &&
+        item.dimensions.width &&
+        item.dimensions.height,
+    )
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-4xl">
+      <h2 className="text-xl font-bold text-black mb-4">Shipment Details</h2>
+      <p className="text-gray-600 mb-6">Enter pickup and delivery information and add your items.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Pickup Address */}
+        <div>
+          <label className="block font-semibold text-black mb-2">Pickup Address</label>
+          <input
+            type="text"
+            name="pickupAddress"
+            value={formData.pickupAddress}
+            onChange={handleChange}
+            placeholder="Enter Pickup Address"
+            className="border p-2 w-full rounded"
+            required
+          />
+        </div>
+
+        {/* Delivery Address */}
+        <div>
+          <label className="block font-semibold text-black mb-2">Delivery Address</label>
+          <input
+            type="text"
+            name="deliveryAddress"
+            value={formData.deliveryAddress}
+            onChange={handleChange}
+            placeholder="Enter Delivery Address"
+            className="border p-2 w-full rounded"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <label className="block font-semibold text-black mb-2">Shipping Option</label>
+        <select
+          name="shippingOption"
+          value={formData.shippingOption}
+          onChange={handleChange}
+          className="border p-2 w-full rounded"
+          required
+        >
+          <option value="">Select Shipping Method</option>
+          <option value="air">Air Freight</option>
+          <option value="sea">Sea Freight</option>
+          <option value="land">Land Freight</option>
+          <option value="express">Express Delivery</option>
+        </select>
+      </div>
+
+      {/* Items Section */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-black">Items</h3>
+          <button
+            type="button"
+            onClick={addItem}
+            className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+          >
+            <Plus size={16} />
+            Add Item
+          </button>
+        </div>
+
+        {formData.items.map((item, index) => (
+          <ItemRow
+            key={index}
+            item={item}
+            index={index}
+            onChange={handleItemChange}
+            onRemove={removeItem}
+            isRemovable={formData.items.length > 1}
+          />
+        ))}
+
+        {/* Items Summary */}
+        {formData.items.length > 0 && (
+          <div className="mt-6 p-4 border rounded-md bg-blue-50">
+            <h3 className="font-semibold text-black mb-2">Shipment Summary</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-700">Total Items:</p>
+                <p className="font-medium text-black">{formData.items.length} different items</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Total Quantity:</p>
+                <p className="font-medium text-black">
+                  {formData.items.reduce((sum, item) => sum + (Number.parseInt(item.quantity) || 0), 0)} pieces
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Total Weight:</p>
+                <p className="font-medium text-black">{totalWeight.toFixed(2)} kg</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Total Declared Value:</p>
+                <p className="font-medium text-black">${totalValue.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <label className="block font-semibold text-black mb-2">Special Instructions (Optional)</label>
+        <textarea
+          name="specialInstructions"
+          value={formData.specialInstructions}
+          onChange={handleChange}
+          placeholder="Any special handling instructions or notes"
+          className="border p-2 w-full rounded h-24 resize-none"
+        ></textarea>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-end space-x-4 mt-8">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard")}
+          className="px-6 py-2 border rounded hover:bg-gray-100 text-black"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={!isFormValid}
+          className={`px-6 py-2 rounded transition duration-200 ${
+            !isFormValid ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
+        >
+          Create Shipment
+        </button>
+      </div>
+    </form>
+  )
+}
+[V0_FILE]typescriptreact:file="app/dashboard/new-shipment/page.tsx" isFixed="true" isEdit="true" isQuickEdit="true" isMerged="true"
+"use client"
+
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import ShipmentForm from "@/components/ShipmentForm"
+
+export default function NewShipment() {
+  return (
+    <div className="bg-white">
+      <Link href="/dashboard" className="flex items-center text-blue-600 hover:text-blue-800 mb-4">
+        <ArrowLeft size={16} className="mr-1" />
+        Back to Dashboard
+      </Link>
+
+      <h1 className="text-2xl font-bold text-black mb-6">Create New Shipment</h1>
+
+      <ShipmentForm />
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/admin/users/loading.tsx" isFixed="true" isMerged="true"
+export default function Loading() {
+  return null
+}
+[V0_FILE]typescriptreact:file="app/admin/users/add/page.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import UserForm from "@/components/UserForm"
+
+export default function AddUserPage() {
+  return (
+    <div className="bg-white">
+      <Link href="/admin/users" className="flex items-center text-blue-600 hover:text-blue-800 mb-4">
+        <ArrowLeft size={16} className="mr-1" />
+        Back to Users
+      </Link>
+
+      <h1 className="text-2xl font-bold text-black mb-2">Add New User</h1>
+      <p className="text-gray-700 mb-6">Create a new user account in the system.</p>
+
+      <UserForm />
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="components/UserForm.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Check } from "lucide-react"
+import type { UserFormData } from "@/types/user"
+
+export default function UserForm() {
+  const router = useRouter()
+  const [formData, setFormData] = useState<UserFormData>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "user",
+    company: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    sendInvite: true,
+  })
+
+  const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }))
+
+    // Clear error when field is edited
+    if (errors[name as keyof UserFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }))
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof UserFormData, string>> = {}
+
+    // Required fields
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required"
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required"
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    // Password validation
+    if (!formData.sendInvite) {
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      } else if (formData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters"
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match"
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) return
+
+    setIsSubmitting(true)
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      console.log("User created:", {
+        ...formData,
+        // Don't log passwords in production
+        password: "[REDACTED]",
+        confirmPassword: "[REDACTED]",
+      })
+
+      setSubmitSuccess(true)
+
+      // Reset form or redirect after success
+      setTimeout(() => {
+        router.push("/admin/users")
+      }, 1500)
+    } catch (error) {
+      console.error("Error creating user:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-3xl border border-gray-300">
+      {submitSuccess && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-300 rounded-md flex items-center text-green-700">
+          <Check size={20} className="mr-2 flex-shrink-0" />
+          <span>User successfully created! Redirecting...</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* First Name */}
+        <div>
+          <label htmlFor="firstName" className="block font-semibold text-black mb-2">
+            First Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
+            className={`border p-2 w-full rounded text-black ${
+              errors.firstName ? "border-red-500" : "border-gray-400"
+            }`}
+            disabled={isSubmitting}
+            required
+          />
+          {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>}
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <label htmlFor="lastName" className="block font-semibold text-black mb-2">
+            Last Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            className={`border p-2 w-full rounded text-black ${errors.lastName ? "border-red-500" : "border-gray-400"}`}
+            disabled={isSubmitting}
+            required
+          />
+          {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>}
+        </div>
+      </div>
+
+      {/* Email */}
+      <div className="mb-6">
+        <label htmlFor="email" className="block font-semibold text-black mb-2">
+          Email Address <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          className={`border p-2 w-full rounded text-black ${errors.email ? "border-red-500" : "border-gray-400"}`}
+          disabled={isSubmitting}
+          required
+        />
+        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Company */}
+        <div>
+          <label htmlFor="company" className="block font-semibold text-black mb-2">
+            Company
+          </label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="border border-gray-400 p-2 w-full rounded text-black"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label htmlFor="phone" className="block font-semibold text-black mb-2">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="border border-gray-400 p-2 w-full rounded text-black"
+            disabled={isSubmitting}
+          />
+        </div>
+      </div>
+
+      {/* Role */}
+      <div className="mb-6">
+        <label htmlFor="role" className="block font-semibold text-black mb-2">
+          User Role <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="role"
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="border border-gray-400 p-2 w-full rounded text-black"
+          disabled={isSubmitting}
+          required
+        >
+          <option value="user">Regular User</option>
+          <option value="admin">Administrator</option>
+        </select>
+        <p className="mt-1 text-sm text-gray-700">
+          Administrators have full access to manage users and system settings.
+        </p>
+      </div>
+
+      {/* Send Invite Option */}
+      <div className="mb-6">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="sendInvite"
+            name="sendInvite"
+            checked={formData.sendInvite}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-400 rounded"
+            disabled={isSubmitting}
+          />
+          <label htmlFor="sendInvite" className="ml-2 block text-black">
+            Send invitation email to set password
+          </label>
+        </div>
+      </div>
+
+      {/* Password fields (shown only if not sending invite) */}
+      {!formData.sendInvite && (
+        <div className="border-t border-gray-300 pt-6 mt-6">
+          <h3 className="text-lg font-semibold text-black mb-4">Set Password</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block font-semibold text-black mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`border p-2 w-full rounded text-black ${
+                  errors.password ? "border-red-500" : "border-gray-400"
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+              <p className="mt-1 text-sm text-gray-700">Password must be at least 8 characters long.</p>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label htmlFor="confirmPassword" className="block font-semibold text-black mb-2">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`border p-2 w-full rounded text-black ${
+                  errors.confirmPassword ? "border-red-500" : "border-gray-400"
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Buttons */}
+      <div className="flex justify-end space-x-4 mt-8">
+        <button
+          type="button"
+          onClick={() => router.push("/admin/users")}
+          className="px-6 py-2 border border-gray-400 rounded hover:bg-gray-100 text-black"
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center"
+        >
+          {isSubmitting ? (
+            <>
+              <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-white rounded-full"></span>
+              Creating...
+            </>
+          ) : (
+            "Create User"
+          )}
+        </button>
+      </div>
+    </form>
+  )
+}
+[V0_FILE]typescriptreact:file="types/user.ts" isEdit="true" isMerged="true"
+export interface User {
+  id: string // Changed from id?: string to make it required
+  firstName: string
+  lastName: string
+  email: string
+  role: "admin" | "user"
+  company?: string
+  phone?: string
+  status: "active" | "inactive" | "pending"
+  dateCreated?: string
+}
+
+export interface UserFormData {
+  firstName: string
+  lastName: string
+  email: string
+  role: "admin" | "user"
+  company: string
+  phone: string
+  password: string
+  confirmPassword: string
+  sendInvite: boolean
+}
+[V0_FILE]typescriptreact:file="app/admin/users/page.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { Search, Filter, Pencil, Trash2, UserPlus } from "lucide-react"
+import type { User } from "@/types/user"
+
+export default function UsersPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterRole, setFilterRole] = useState<string>("all")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+
+  // Mock user data - in a real app, this would come from an API
+  const users: User[] = [
+    {
+      id: "1",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john.doe@example.com",
+      role: "admin",
+      company: "Equity Logistics",
+      phone: "+1 (555) 123-4567",
+      status: "active",
+      dateCreated: "2023-01-15",
+    },
+    {
+      id: "2",
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "jane.smith@example.com",
+      role: "user",
+      company: "ABC Shipping",
+      phone: "+1 (555) 987-6543",
+      status: "active",
+      dateCreated: "2023-02-20",
+    },
+    {
+      id: "3",
+      firstName: "Robert",
+      lastName: "Johnson",
+      email: "robert.johnson@example.com",
+      role: "user",
+      company: "XYZ Transport",
+      phone: "+1 (555) 456-7890",
+      status: "inactive",
+      dateCreated: "2023-03-10",
+    },
+    {
+      id: "4",
+      firstName: "Emily",
+      lastName: "Williams",
+      email: "emily.williams@example.com",
+      role: "user",
+      company: "Global Freight",
+      phone: "+1 (555) 234-5678",
+      status: "pending",
+      dateCreated: "2023-04-05",
+    },
+    {
+      id: "5",
+      firstName: "Michael",
+      lastName: "Brown",
+      email: "michael.brown@example.com",
+      role: "admin",
+      company: "Equity Logistics",
+      phone: "+1 (555) 876-5432",
+      status: "active",
+      dateCreated: "2023-01-05",
+    },
+  ]
+
+  // Filter and search users
+  const filteredUsers = users.filter((user) => {
+    // Apply role filter
+    if (filterRole !== "all" && user.role !== filterRole) return false
+
+    // Apply status filter
+    if (filterStatus !== "all" && user.status !== filterStatus) return false
+
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return (
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.company?.toLowerCase().includes(query)
+      )
+    }
+
+    return true
+  })
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 border border-green-300"
+      case "inactive":
+        return "bg-gray-100 text-gray-800 border border-gray-300"
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border border-yellow-300"
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-300"
+    }
+  }
+
+  const handleEditUser = (userId: string) => {
+    console.log(`Edit user with ID: ${userId}`)
+    // In a real app, you would navigate to the edit page or open a modal
+  }
+
+  const handleDeleteUser = (userId: string) => {
+    console.log(`Delete user with ID: ${userId}`)
+    // In a real app, you would show a confirmation dialog before deleting
+  }
+
+  return (
+    <div className="bg-white">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-black">User Management</h1>
+          <p className="text-gray-700">Manage user accounts and permissions</p>
+        </div>
+        <Link
+          href="/admin/users/add"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <UserPlus size={16} />
+          <span>Add User</span>
+        </Link>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600" size={16} />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-gray-400 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <div className="relative">
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-400 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            >
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600" size={16} />
+          </div>
+
+          <div className="relative">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-400 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="pending">Pending</option>
+            </select>
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600" size={16} />
+          </div>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className="bg-white rounded-lg shadow border border-gray-300">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300 w-16">
+                  S.No
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Role
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Company
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300">
+                  Date Added
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider border-b border-gray-300 w-24">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-300">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user, index) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-black">{index + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-black">
+                      {user.firstName} {user.lastName}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-black">{user.email}</td>
+                    <td className="px-4 py-3 text-sm text-black capitalize">{user.role}</td>
+                    <td className="px-4 py-3 text-sm text-black">{user.company || "-"}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(user.status)} capitalize`}>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-black">{user.dateCreated}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          onClick={() => handleEditUser(user.id)}
+                          className="p-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                          title="Edit User"
+                        >
+                          <Pencil size={16} />
+                          <span className="sr-only">Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                          title="Delete User"
+                        >
+                          <Trash2 size={16} />
+                          <span className="sr-only">Delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-4 py-6 text-center text-gray-700 border-b border-gray-300">
+                    No users found matching your search criteria.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination - simplified for this example */}
+        <div className="px-4 py-3 border-t border-gray-300 flex justify-between items-center">
+          <div className="text-sm text-black">
+            Showing <span className="font-medium">{filteredUsers.length}</span> of{" "}
+            <span className="font-medium">{users.length}</span> users
+          </div>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border border-gray-400 rounded text-sm text-black disabled:opacity-50">
+              Previous
+            </button>
+            <button className="px-3 py-1 border border-blue-400 rounded text-sm bg-blue-50 text-blue-700 font-medium">
+              1
+            </button>
+            <button className="px-3 py-1 border border-gray-400 rounded text-sm text-black disabled:opacity-50">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="app/api/auth/login/route.ts" isMerged="true"
+import { NextResponse } from "next/server"
+
+// In a real application, you would use a database to store and validate users
+// This is a simplified example with hardcoded users
+const users = [
+  {
+    id: "1",
+    email: "admin@example.com",
+    password: "admin123", // In production, never store plain text passwords
+    role: "admin",
+    name: "Admin User",
+  },
+  {
+    id: "2",
+    email: "user@example.com",
+    password: "user123",
+    role: "user",
+    name: "Regular User",
+  },
+]
+
+export async function POST(request: Request) {
+  try {
+    // Parse the request body
+    const body = await request.json()
+    const { email, password } = body
+
+    // Basic validation
+    if (!email || !password) {
+      return NextResponse.json({ success: false, message: "Email and password are required" }, { status: 400 })
+    }
+
+    // Find the user
+    const user = users.find((u) => u.email === email)
+
+    // Check if user exists and password matches
+    if (!user || user.password !== password) {
+      return NextResponse.json({ success: false, message: "Invalid email or password" }, { status: 401 })
+    }
+
+    // In a real application, you would generate a JWT token here
+    // For simplicity, we'll just return a mock token
+    const token = `mock-jwt-token-${Date.now()}`
+
+    // Return user info and token (excluding password)
+    const { password: _, ...userWithoutPassword } = user
+
+    return NextResponse.json({
+      success: true,
+      message: "Login successful",
+      user: userWithoutPassword,
+      token,
+    })
+  } catch (error) {
+    console.error("Login error:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+  }
+}
+[V0_FILE]typescriptreact:file="lib/auth.ts" isMerged="true"
+// Authentication utilities for Laravel backend
+
+// Base API URL - change this to your Laravel backend URL
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+
+// Save auth token to localStorage
+export const setToken = (token: string) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("auth_token", token)
+  }
+}
+
+// Get auth token from localStorage
+export const getToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("auth_token")
+  }
+  return null
+}
+
+// Remove auth token from localStorage
+export const removeToken = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("auth_token")
+  }
+}
+
+// Save user data to localStorage
+export const setUser = (user: any) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("user", JSON.stringify(user))
+  }
+}
+
+// Get user data from localStorage
+export const getUser = () => {
+  if (typeof window !== "undefined") {
+    const user = localStorage.getItem("user")
+    return user ? JSON.parse(user) : null
+  }
+  return null
+}
+
+// Remove user data from localStorage
+export const removeUser = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("user")
+  }
+}
+
+// Check if user is authenticated
+export const isAuthenticated = () => {
+  if (typeof window !== "undefined") {
+    return !!getToken()
+  }
+  return false
+}
+
+// Login user
+export const loginUser = async (email: string, password: string) => {
+  try {
+    const response = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      credentials: "include", // Important for cookies if using Laravel Sanctum
+      body: JSON.stringify({ email, password }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || "Login failed")
+    }
+
+    // Store the token - the exact field name might differ based on your Laravel API
+    if (data.token) {
+      setToken(data.token)
+    }
+
+    // If the API returns user data, store it
+    if (data.user) {
+      setUser(data.user)
+    }
+
+    return data
+  } catch (error: any) {
+    throw new Error(error.message || "An error occurred during login")
+  }
+}
+
+// Logout user
+export const logoutUser = async () => {
+  try {
+    const token = getToken()
+    
+    if (token) {
+      // Call the logout endpoint
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        credentials: "include",
+      })
+    }
+    
+    // Clear local storage regardless of API response
+    removeToken()
+    removeUser()
+    
+    return true
+  } catch (error) {
+    console.error("Logout error:", error)
+    // Still clear local storage even if API call fails
+    removeToken()
+    removeUser()
+    return false
+  }
+}
+
+// Get authenticated user data from API
+export const fetchUserData = async () => {
+  try {
+    const token = getToken()
+    
+    if (!token) {
+      throw new Error("No authentication token found")
+    }
+    
+    const response = await fetch(`${API_URL}/user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      credentials: "include",
+    })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch user data")
+    }
+    
+    // Update stored user data
+    setUser(data)
+    
+    return data
+  } catch (error: any) {
+    console.error("Error fetching user data:", error)
+    throw new Error(error.message || "An error occurred while fetching user data")
+  }
+}
+
+// Create a reusable fetch function with authentication
+export const authFetch = async (url: string, options: RequestInit = {}) => {
+  const token = getToken()
+  
+  const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    ...options.headers,
+  }
+  
+  const response = await fetch(`${API_URL}${url}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  })
+  
+  const data = await response.json()
+  
+  if (!response.ok) {
+    throw new Error(data.message || "API request failed")
+  }
+  
+  return data
+}
+[V0_FILE]typescriptreact:file="app/login/page.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import { useState, type ChangeEvent, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
+import { loginUser } from "@/lib/auth"
+
+// Simple regex for email validation
+const emailRegex = /([a-zA-Z0-9]+)([.{1}])?([a-zA-Z0-9]+)@gmail([.])com/g
+
+export default function Login() {
+  const [email, setEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  // Validate email format on blur
+  const handleEmailBlur = () => {
+    if (email && !emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address.")
+    } else {
+      setEmailError("")
+    }
+  }
+
+  // Update email and clear error if the new value is valid
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    if (emailError && emailRegex.test(e.target.value)) {
+      setEmailError("")
+    }
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError("")
+
+    // Final validation for email on submit
+    if (!emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address.")
+      return
+    }
+
+    // If we get here, the email is valid, so set loading state and proceed
+    setLoading(true)
+
+    try {
+      // Call the loginUser function from our auth utilities
+      const data = await loginUser(email, password)
+      
+      // Redirect based on user role
+      if (data.user.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred during login")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 via-blue-600 to-yellow-500 p-6">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl rounded-lg p-8 transform transition-all duration-500 hover:scale-105">
+        {/* Add the logo above the heading in the return statement */}
+        <div className="flex justify-center mb-4">
+          <img
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/EquityLogo-iHxORnVjoDEGJpQzrB4F5aL4gA3EAz.png"
+            alt="Equity Logistics Logo"
+            className="h-16"
+          />
+        </div>
+        <h1 className="text-3xl font-extrabold mb-6 text-center bg-gradient-to-r from-blue-700 to-yellow-500 bg-clip-text text-transparent">
+          Log In
+        </h1>
+        {error && <div className="mb-4 p-3 rounded text-center bg-red-200 text-red-800 animate-pulse">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="block text-lg font-medium text-gray-700 dark:text-gray-200">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder="amitb@example.com"
+              required
+              value={email}
+              onChange={handleEmailChange}
+              onBlur={handleEmailBlur}
+              className={`w-full px-4 py-2 mt-2 border rounded-md focus:outline-none transition-all duration-300 ${
+                emailError && !loading ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
+            />
+            {emailError && !loading && <p className="mt-1 text-sm text-red-500">{emailError}</p>}
+          </div>
+          <div>
+            <div className="flex justify-between items-center">
+              <label htmlFor="password" className="block text-lg font-medium text-gray-700 dark:text-gray-200">
+                Password
+              </label>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  alert("Password reset functionality would be implemented here")
+                }}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                Forgot password?
+              </a>
+            </div>
+            <input
+              type="password"
+              id="password"
+              placeholder="Your password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 mt-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+              Remember Me
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md font-semibold shadow-lg transition-all duration-300"
+          >
+            {loading ? "Signing in..." : "Login"}
+          </button>
+        </form>
+        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center">
+          <span className="font-bold">
+            <span className="text-blue-700">E</span>
+            <span className="text-black">quity</span>
+            <span className="text-green-500 mx-1">L</span>
+            <span className="text-yellow-500">ogistics</span>
+          </span>
+        </p>
+      </div>
+    </div>
+  )
+}
+[V0_FILE]typescriptreact:file="middleware.ts" isMerged="true"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+// This function can be marked `async` if using `await` inside
+export function middleware(request: NextRequest) {
+  // Get the pathname of the request
+  const path = request.nextUrl.pathname
+
+  // Define public paths that don't require authentication
+  const isPublicPath = path === "/login"
+
+  // Get the token from the cookies
+  const token = request.cookies.get("auth_token")?.value || ""
+
+  // If the path is public and the user is authenticated, redirect to dashboard
+  if (isPublicPath && token) {
+    return NextResponse.redirect(new URL("/admin", request.url))
+  }
+
+  // If the path is protected and the user is not authenticated, redirect to login
+  if (!isPublicPath && !token) {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+}
+
+// See "Matching Paths" below to learn more
+export const config = {
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/login"],
+}
+[V0_FILE]typescriptreact:file="components/AuthProvider.tsx" isMerged="true"
+"use client"
+
+import type React from "react"
+
+import { createContext, useContext, useEffect, useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { getUser, isAuthenticated, fetchUserData } from "@/lib/auth"
+
+// Create context
+const AuthContext = createContext<{
+  user: any | null
+  loading: boolean
+  refreshUser: () => Promise<void>
+}>({
+  user: null,
+  loading: true,
+  refreshUser: async () => {},
+})
+
+// Custom hook to use auth context
+export const useAuth = () => useContext(AuthContext)
+
+// Provider component
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Function to refresh user data from API
+  const refreshUser = async () => {
+    try {
+      if (isAuthenticated()) {
+        const userData = await fetchUserData()
+        setUser(userData)
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error)
+    }
+  }
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      if (isAuthenticated()) {
+        // First try to get user from localStorage
+        const storedUser = getUser()
+        if (storedUser) {
+          setUser(storedUser)
+        }
+
+        try {
+          // Then try to refresh from API
+          await refreshUser()
+        } catch (error) {
+          // If API call fails and we're on a protected route, redirect to login
+          if (pathname !== "/login") {
+            router.push("/login")
+          }
+        }
+      } else {
+        setUser(null)
+
+        // Redirect to login if on a protected route
+        if (pathname !== "/login" && !pathname.startsWith("/public")) {
+          router.push("/login")
+        }
+      }
+      setLoading(false)
+    }
+
+    checkAuth()
+  }, [pathname, router])
+
+  return <AuthContext.Provider value={{ user, loading, refreshUser }}>{children}</AuthContext.Provider>
+}
+[V0_FILE]typescriptreact:file="components/Navbar.tsx" isEdit="true" isMerged="true"
+"use client"
+
+import { useState } from "react"
+import { EquityLogo } from "./Logo"
+import { Bell, User, LogOut } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { logoutUser } from "@/lib/auth"
+
+export default function Navbar({ userRole = "user" }: { userRole?: string }) {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+      router.push("/login")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Still redirect to login even if API call fails
+      router.push("/login")
+    }
+  }
+
+  return (
+    <header className="bg-white border-b shadow-sm">
+      <div className="flex justify-between items-center px-6 py-3">
+        <div className="flex items-center">
+          <EquityLogo height={40} width={120} />
+          <h1 className="ml-4 text-xl font-semibold text-gray-800">
+            {userRole === "admin" ? "Admin Dashboard" : "User Dashboard"}
+          </h1>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Bell size={20} className="text-gray-600" />
+          </button>
+
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <User size={16} className="text-white" />
+              </div>
+              <span className="text-gray-800">{userRole === "admin" ? "Admin" : "User"}</span>
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border">
+                <a href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Profile
+                </a>
+                <a href="/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Settings
+                </a>
+                <div className="border-t my-1"></div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}

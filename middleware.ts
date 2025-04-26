@@ -9,13 +9,12 @@ export function middleware(request: NextRequest) {
   // Define public paths that don't require authentication
   const isPublicPath = path === "/login"
 
-  // Get the token from the cookies or localStorage
-  // Note: In a real app, you'd use cookies for security, but for this demo we're checking both
+  // Get the token from the cookies
   const token = request.cookies.get("auth_token")?.value || ""
 
   // If the path is public and the user is authenticated, redirect to dashboard
   if (isPublicPath && token) {
-    return NextResponse.redirect(new URL("/admin", request.url))
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   // For demo purposes, we'll skip the authentication check
