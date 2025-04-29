@@ -126,7 +126,7 @@ export default function UserForm() {
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            className={`border p-2 w-full rounded ${errors.firstName ? "border-red-500" : "border-gray-300"}`}
+            className={`border p-2 w-full text-black rounded ${errors.firstName ? "border-red-500" : "border-gray-300"}`}
             disabled={isSubmitting}
             required
           />
@@ -144,7 +144,7 @@ export default function UserForm() {
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            className={`border p-2 w-full rounded ${errors.lastName ? "border-red-500" : "border-gray-300"}`}
+            className={`border p-2 w-full text-black rounded ${errors.lastName ? "border-red-500" : "border-gray-300"}`}
             disabled={isSubmitting}
             required
           />
@@ -163,7 +163,7 @@ export default function UserForm() {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className={`border p-2 w-full rounded ${errors.email ? "border-red-500" : "border-gray-300"}`}
+          className={`border p-2 w-full text-black rounded ${errors.email ? "border-red-500" : "border-gray-300"}`}
           disabled={isSubmitting}
           required
         />
@@ -182,7 +182,7 @@ export default function UserForm() {
             name="company"
             value={formData.company}
             onChange={handleChange}
-            className="border border-gray-300 p-2 w-full rounded"
+            className="border text-black border-gray-300 p-2 w-full rounded"
             disabled={isSubmitting}
           />
         </div>
@@ -198,7 +198,7 @@ export default function UserForm() {
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="border border-gray-300 p-2 w-full rounded"
+            className="border text-black border-gray-300 p-2 w-full rounded"
             disabled={isSubmitting}
           />
         </div>
@@ -214,12 +214,11 @@ export default function UserForm() {
           name="role"
           value={formData.role}
           onChange={handleChange}
-          className="border border-gray-300 p-2 w-full rounded"
+          className="border text-black border-gray-300 p-2 w-full rounded"
           disabled={isSubmitting}
-          required
         >
-          <option value="user">Regular User</option>
-          <option value="admin">Administrator</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
         </select>
         <p className="mt-1 text-sm text-gray-600">
           Administrators have full access to manage users and system settings.
@@ -244,7 +243,7 @@ export default function UserForm() {
         </div>
       </div>
 
-      {/* Password fields (shown only if not sending invite) */}
+      {/* Password fields shown only if not sending invite */}
       {!formData.sendInvite && (
         <div className="border-t pt-6 mt-6">
           <h3 className="text-lg font-semibold text-black mb-4">Set Password</h3>

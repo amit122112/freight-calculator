@@ -218,7 +218,7 @@ export default function ShipmentForm() {
             !isFormValid ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
           }`}
         >
-          Create Shipment
+          Request Quote
         </button>
       </div>
     </form>

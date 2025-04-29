@@ -1,6 +1,6 @@
 
-// Base API URL - change this to your Laravel backend URL
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://reqres.in/api"
+// Base API URL - change this to Laravel backend URL later
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://hungryblogs.com/api"
 
 // Save auth token to localStorage
 export const setToken = (token: string) => {

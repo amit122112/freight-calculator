@@ -43,7 +43,7 @@ export default function Login() {
     setToken("");
     setLoading(true);
   
-    // Validate email format before making request
+    // This will validate email format before making a request
     if (!emailRegex.test(email)) {
       setEmailError("Please enter a valid email address.");
       setLoading(false);
@@ -61,7 +61,6 @@ export default function Login() {
       });
   
       const data = await res.json();
-  
       if (!res.ok) {
         const msg = data.message || data.error || 'Login failed';
         setError(msg);
@@ -69,13 +68,13 @@ export default function Login() {
         return;
       }
   
-      // Success - store token and optionally redirect
+      // IF success - store token and optionally redirect
       setToken(data.token);
       localStorage.setItem('authToken', data.token);
       setLoading(false);
   
-      // Optional: redirect to dashboard or homepage
-      if (data.user && data.user.role === "admin") {
+      //router.push("/dashboard")
+      if (data.user && data.user.user_role === "admin") {
         router.push("/admin")
       } else {
         router.push("/dashboard")
