@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import {useState} from "react"
 
 import { X } from "lucide-react"
 import type { ShipmentItem } from "../app/types/shipment"
@@ -14,8 +15,29 @@ interface ItemRowProps {
 }
 
 export default function ItemRow({ item, index, onChange, onRemove, isRemovable }: ItemRowProps) {
+
+  const [quantityError, setQuantityError] = useState<string>("")
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+
+    // Validate quantity field
+    if (name === "quantity") {
+      // Check if it's a positive integer not less than 1
+      const numValue = Number.parseInt(value, 10)
+
+      if (value === "") {
+        setQuantityError("Quantity is required")
+      } else if (isNaN(numValue)) {
+        setQuantityError("Quantity must be a valid number")
+      } else if (value.includes(".") ||!Number.isInteger(numValue)) {
+        setQuantityError("Invalid Quantity")
+      } else if (numValue < 1) {
+        setQuantityError("Quantity must be at least 1")
+      } else {
+        setQuantityError("")
+      }
+    }
     onChange(index, { ...item, [name]: value })
   }
 
@@ -44,7 +66,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             value={item.description}
             onChange={handleChange}
             placeholder="Item description"
-            className="w-full border p-2 rounded-md"
+            className="w-full border-gray-400 text-black border p-2 rounded-md"
             required
           />
         </div>
@@ -55,7 +77,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             name="category"
             value={item.category}
             onChange={handleChange}
-            className="w-full border p-2 rounded-md"
+            className="w-full border-gray-400 text-black border p-2 rounded-md"
             required
           >
             <option value="">Select Category</option>
@@ -78,10 +100,12 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             value={item.quantity}
             onChange={handleChange}
             min="1"
+            step="1"
             placeholder="Qty"
-            className="w-full border p-2 rounded-md"
+            className={`w-full text-black border-gray-400 border p-2 rounded-md ${quantityError ? "border-red-500" : ""}`}
             required
           />
+          {quantityError && <p className="mt-1 text-sm text-red-500">{quantityError}</p>}
         </div>
 
         <div>
@@ -94,7 +118,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             step="0.01"
             min="0.01"
             placeholder="Weight"
-            className="w-full border p-2 rounded-md"
+            className="w-full border-gray-400 text-black border p-2 rounded-md"
             required
           />
         </div>
@@ -118,7 +142,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             step="0.1"
             min="0.1"
             placeholder="Length"
-            className="w-full border p-2 rounded-md"
+            className="w-full border-gray-400 text-black border p-2 rounded-md"
             required
           />
         </div>
@@ -138,7 +162,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             step="0.1"
             min="0.1"
             placeholder="Width"
-            className="w-full border p-2 rounded-md"
+            className="w-full  border-gray-400 text-black border p-2 rounded-md"
             required
           />
         </div>
@@ -158,7 +182,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
             step="0.1"
             min="0.1"
             placeholder="Height"
-            className="w-full border p-2 rounded-md"
+            className="w-full border-gray-400 text-black border p-2 rounded-md"
             required
           />
         </div>

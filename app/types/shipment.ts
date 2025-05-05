@@ -1,4 +1,4 @@
-export type ShipmentItem = {
+export interface ShipmentItem {
     description: string
     category: string
     quantity: string
@@ -17,4 +17,13 @@ export interface ShipmentFormData {
     specialInstructions: string
     items: ShipmentItem[]
 }
+
+export interface CarrierQuote {
+    transport_name: string
+    price: number
+    currency?: string
+    fuel_levy_percentage?: number
+    gst_percentage?: number
+    available: boolean
+  }
   

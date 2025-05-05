@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { MessageSquare, Phone, Mail, FileText, Send, HelpCircle, AlertCircle } from "lucide-react"
+import {Phone, Mail, FileText, Send, HelpCircle, AlertCircle } from "lucide-react"
 
 export default function SupportPage() {
   const [supportMessage, setSupportMessage] = useState("")

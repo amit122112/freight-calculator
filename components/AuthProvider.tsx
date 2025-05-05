@@ -4,17 +4,21 @@ import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { getUser, isAuthenticated, fetchUserData } from "@/lib/auth"
+//import { authApi } from "@/lib/auth"
 
 // Create context
 const AuthContext = createContext<{
   user: any | null
   loading: boolean
   refreshUser: () => Promise<void>
+  login: (email: string, password: string) => Promise<any>
+  logout: () => Promise<boolean>
 }>({
   user: null,
   loading: true,
   refreshUser: async () => {},
+  login: async () => ({}),
+  logout: async () => false,
 })
 
 // Custom hook to use auth context
@@ -27,12 +31,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Function to refresh user data from API
+  // Function to refresh user data from localStorage
   const refreshUser = async () => {
     try {
-      if (isAuthenticated()) {
-        const userData = await fetchUserData()
-        setUser(userData)
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("auth_token")
+        if (token) {
+          try {
+            // This will try to get user data from API
+            //const userData = await authApi.getUser()
+            //setUser(userData)
+          } catch (error) {
+            console.error("Failed to refresh user data:", error)
+            // If API call fails, this will try to use stored user data
+            const storedUser = localStorage.getItem("user")
+            if (storedUser) {
+              setUser(JSON.parse(storedUser))
+            } else {
+              setUser(null)
+            }
+          }
+        } else {
+          setUser(null)
+        }
       }
     } catch (error) {
       console.error("Failed to refresh user data:", error)
@@ -42,35 +63,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check authentication status
     const checkAuth = async () => {
-      if (isAuthenticated()) {
-        // First try to get user from localStorage
-        const storedUser = getUser()
-        if (storedUser) {
-          setUser(storedUser)
-        }
+      try {
+        if (typeof window !== "undefined") {
+          const token = localStorage.getItem("auth_token")
+          const storedUser = localStorage.getItem("user")
 
-        try {
-          // Then try to refresh from API
-          await refreshUser()
-        } catch (error) {
-          // If API call fails and we're on a protected route, redirect to login
-        //   if (pathname !== "/login") {
-        //     router.push("/login")
-        //   }
+          if (token && storedUser) {
+            setUser(JSON.parse(storedUser))
+          } else {
+            setUser(null)
+
+            // Comment out the redirect logic for now
+            // if (pathname !== "/login" && !pathname.startsWith("/public")) {
+            //   router.push("/login");
+            // }
+          }
         }
-      } else {
+      } catch (error) {
+        console.error("Auth check error:", error)
         setUser(null)
-
-        // // Redirect to login if on a protected route
-        // if (pathname !== "/login" && !pathname.startsWith("/public")) {
-        //   router.push("/login")
-        // }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     checkAuth()
   }, [pathname, router])
 
-  return <AuthContext.Provider value={{ user, loading, refreshUser }}>{children}</AuthContext.Provider>
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await authApi.login(email, password)
+
+      // Store token and user data
+      localStorage.setItem("auth_token", response.token)
+      localStorage.setItem("user", JSON.stringify(response.user))
+
+      // Update state
+      setUser(response.user)
+      return response
+    } catch (error) {
+      console.error("Login failed:", error)
+      throw error
+    }
+  }
+
+  const logout = async () => {
+    try {
+      // Try to call logout API if user is logged in
+      if (user) {
+        try {
+          await authApi.logout()
+        } catch (error) {
+          console.error("Logout API call failed:", error)
+        }
+      }
+
+      // This will clear local storage regardless of API response
+      localStorage.removeItem("auth_token")
+      localStorage.removeItem("user")
+      setUser(null)
+
+      return true
+    } catch (error) {
+      console.error("Logout failed:", error)
+      return false
+    }
+  }
+
+  return <AuthContext.Provider value={{ user, loading, refreshUser, login, logout }}>{children}</AuthContext.Provider>
 }

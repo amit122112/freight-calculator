@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Mail, MessageSquare, AlertTriangle, Save } from "lucide-react"
+import { Mail, MessageSquare, AlertTriangle, Save } from "lucide-react"
 
 // Define proper types for our notification settings
 type EmailNotificationSettings = {

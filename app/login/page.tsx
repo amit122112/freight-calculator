@@ -14,10 +14,10 @@ export default function Login() {
   const [emailError, setEmailError] = useState("")
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false)
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  //const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
   //This will validate email format on blur
@@ -143,15 +143,24 @@ export default function Login() {
                 Forgot password?
               </a>
             </div>
-            <input
-              type="password"
-              id="password"
-              placeholder="Your password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 mt-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Your password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 mt-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           
 

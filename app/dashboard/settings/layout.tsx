@@ -2,11 +2,11 @@
 
 import type React from "react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { User, Shield, Bell, Globe, ChevronRight } from "lucide-react"
+//import Link from "next/link"
+//import { User, Shield, Bell, Globe, ChevronRight } from "lucide-react"
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  //const pathname = usePathname()
 
 
 
