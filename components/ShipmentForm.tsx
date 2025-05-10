@@ -6,6 +6,7 @@ import { Plus, Calculator, Send, Truck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import ItemRow from "./ItemRow"
 import type { ShipmentFormData, ShipmentItem } from "@/app/types/shipment"
+import {API_TOKEN} from "@/lib/config"
 
 // Define the carrier quote interface
 interface CarrierQuote {
@@ -158,6 +159,7 @@ export default function ShipmentForm() {
     setCarrierQuotes([])
 
     try {
+      //const token = localStorage.getItem("authToken");
       // Prepare the request payload
       const payload = {
         pick_up_address: formData.pickupAddress,
@@ -174,7 +176,15 @@ export default function ShipmentForm() {
         })),
       }
 
-      console.log("Sending to API:", JSON.stringify(payload, null, 2))
+      // console.log("Sending to API:", JSON.stringify(payload, null, 2))
+
+      // const token = localStorage.getItem("token")
+      //   console.log(" Bearer Token being used:", token)
+
+      //   if (!token) {
+      //     alert("You are not logged in. Please log in to get a token.")
+      //     return
+      //   }
 
 
       const response = await fetch(`https://www.hungryblogs.com/api/GetQuote`, {
@@ -182,14 +192,14 @@ export default function ShipmentForm() {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          "Authorization": ""
+          "Authorization": API_TOKEN
         },
         body: JSON.stringify(payload),
       })
       
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("🚨 Server Error Response:", errorText)
+        console.error(" Server Error Response:", errorText)
         throw new Error(`Failed to fetch carrier quotes: ${errorText}`)
       }
       
@@ -226,6 +236,7 @@ export default function ShipmentForm() {
     setSelectedCarrier(carrierName)
 
     try {
+      
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -257,6 +268,20 @@ export default function ShipmentForm() {
     setCalculationResults(null)
     setCarrierQuotes([])
   }
+
+  const totalLength = formData.items.reduce(
+    (sum, item) => sum + (parseFloat(item.dimensions.length) || 0),
+    0
+  )
+  const totalWidth = formData.items.reduce(
+    (sum, item) => sum + (parseFloat(item.dimensions.width) || 0),
+    0
+  )
+  const totalHeight = formData.items.reduce(
+    (sum, item) => sum + (parseFloat(item.dimensions.height) || 0),
+    0
+  )
+  
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-4xl">
@@ -415,7 +440,7 @@ export default function ShipmentForm() {
                 Shipment details (Quantity: {totalQuantity}, Weight: {totalWeight.toFixed(2)} kg)
               </p>
               <p className="text-lg">
-                Dimensions (Length: {totalQuantity}, Width: {totalWeight.toFixed(2)}, Height:)
+                Dimensions (Length: {totalLength.toFixed(2)} m, Width: {totalWidth.toFixed(2)} m, Height: {totalHeight.toFixed(2)} m)
               </p>
             </div>
           </div>
@@ -440,7 +465,8 @@ export default function ShipmentForm() {
                   <>
                     <div className="mb-6">
                       <p className="text-lg font-semibold mb-2">
-                        Total Cost: ${quote.price.toFixed(2)} + Fuel Levy + GST
+                        {/* Total Cost: ${quote.price.toFixed(2)} + Fuel Levy + GST */}
+                        Total Cost: ${quote.price} + Fuel Levy + GST 
                       </p>
                       <p className="text-sm text-gray-700">
                         Additional charges may apply please contact Equity Logistics for final quotation

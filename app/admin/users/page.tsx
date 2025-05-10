@@ -1,51 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search, Filter, Pencil, Trash2, UserPlus } from "lucide-react"
 import type { User } from "../../types/user"
+import {API_TOKEN} from "@/lib/config"
+import { useRouter } from "next/navigation"
+
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [filterRole, setFilterRole] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const router = useRouter()
 
   // This is Mock user data - API to be integrated in 2nd sprint
-  const users: User[] = [
-    {
-      id: "1",
-      firstName: "Amit",
-      lastName: "B",
-      email: "amit.b@example.com",
-      role: "admin",
-      company: "Equity Logistics",
-      phone: "+123123123",
-      status: "active",
-      dateCreated: "2023-01-15",
-    },
-    {
-      id: "2",
-      firstName: "Santu",
-      lastName: "S",
-      email: "santu.s@example.com",
-      role: "user",
-      company: "ABC Shipping",
-      phone: "+321321321",
-      status: "active",
-      dateCreated: "2023-02-20",
-    },
-    {
-      id: "3",
-      firstName: "Tashin",
-      lastName: "T",
-      email: "tashin.t@example.com",
-      role: "user",
-      company: "XYZ Transport",
-      phone: "+231123321",
-      status: "inactive",
-      dateCreated: "2023-03-10",
-    },
-  ]
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // const token = localStorage.getItem("token")
+        // if (!token) {
+        //   console.error("Token missing. Please login.")
+        //   return
+        // }
+
+        const response = await fetch("https://www.hungryblogs.com/api/GetUsers", {
+          headers: {
+            Authorization: API_TOKEN,
+            Accept: "application/json",
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch users")
+        }
+
+        const data = await response.json()
+        const formatted = data.details.map((u: any) => ({
+          id: u.id,
+          firstName: u.first_name,
+          lastName: u.last_name || "",
+          email: u.email,
+          role: u.user_role,
+          company: u.company || "",
+          phone: "", // Placeholder - not available in response
+          status: u.user_status,
+          dateCreated: u.created_at ? new Date(u.created_at).toLocaleDateString() : "-",
+        }))
+
+        setUsers(formatted)
+      } catch (err) {
+        console.error("Error fetching users:", err)
+      }
+    }
+
+    fetchUsers()
+  }, [])
 
   // Filter and search users
   const filteredUsers = users.filter((user) => {
@@ -83,14 +94,42 @@ export default function UsersPage() {
   }
 
   const handleEditUser = (userId: string) => {
-    console.log(`Edit user with ID: ${userId}`)
-    // navigate to the edit page or open a modal later stages
+    router.push(`/admin/users/edit/${userId}`)
   }
 
-  const handleDeleteUser = (userId: string) => {
-    console.log(`Delete user with ID: ${userId}`)
-    // show a confirmation dialog before deleting in later stage
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) return
+  
+    try {
+      // const token = localStorage.getItem("token")
+      // if (!token) {
+      //   alert("Authentication token missing.")
+      //   return
+      // }
+  
+      const response = await fetch("https://www.hungryblogs.com/api/DeleteUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: API_TOKEN,
+        },
+        body: JSON.stringify({ id: userId }), // ID must be in a JSON object
+      })
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete user")
+      }
+  
+      // Remove user from list in UI
+      setUsers((prev) => prev.filter((user) => user.id !== userId))
+      alert(" User deleted successfully.")
+    } catch (err) {
+      console.error("Delete error:", err)
+      alert(" Could not delete user.")
+    }
   }
+  
 
   return (
     <div className="bg-white">

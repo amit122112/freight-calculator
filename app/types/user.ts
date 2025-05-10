@@ -3,17 +3,14 @@ export interface User {
   firstName: string
   lastName: string
   email: string
-  role: "admin" | "user"
+  role: string
   company?: string
   phone?: string
-  status: "active" | "inactive" | "pending"
+  status: string
   dateCreated?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  country?: string
+  sendInvite: boolean
 }
+
 
 export interface UserFormData {
   firstName: string
@@ -29,4 +26,5 @@ export interface UserFormData {
   state: string
   zipCode: string
   country: string
+  //sendInvite: boolean
 }

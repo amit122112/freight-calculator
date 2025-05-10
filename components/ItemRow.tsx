@@ -128,7 +128,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
 
       <div className="grid grid-cols-3 gap-4 mt-4">
         <div>
-          <label className="block text-sm font-medium text-black mb-1">Length (cm)</label>
+          <label className="block text-sm font-medium text-black mb-1">Length (m)</label>
           <input
             type="number"
             name="length"
@@ -148,7 +148,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-black mb-1">Width (cm)</label>
+          <label className="block text-sm font-medium text-black mb-1">Width (m)</label>
           <input
             type="number"
             name="width"
@@ -168,7 +168,7 @@ export default function ItemRow({ item, index, onChange, onRemove, isRemovable }
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-black mb-1">Height (cm)</label>
+          <label className="block text-sm font-medium text-black mb-1">Height (m)</label>
           <input
             type="number"
             name="height"
