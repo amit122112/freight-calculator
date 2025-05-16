@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { usePathname } from "next/navigation"
+//import { usePathname } from "next/navigation"
 //import Link from "next/link"
 //import { User, Shield, Bell, Globe, ChevronRight } from "lucide-react"
 

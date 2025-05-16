@@ -2,22 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {
-  Home,
-  Users,
-  Package,
-  ClipboardList,
-  Settings,
-  Hash,
-  CreditCard,
-  ChevronDown,
-  ChevronRight,
-  User,
-  Shield,
-  Bell,
-  Globe,
-  HelpCircle,
-} from "lucide-react"
+import {Home,Users,Package,ClipboardList,Settings,Hash,CreditCard,ChevronDown,ChevronRight,User,Shield,Bell,HelpCircle,} from "lucide-react"
 import { usePathname } from "next/navigation"
 
 type SidebarProps = {
@@ -52,9 +37,7 @@ export default function Sidebar({ userRole = "user" }: SidebarProps) {
   const settingsItems = [
     { icon: User, label: "Account", href: "/admin/settings/account" },
     { icon: Shield, label: "Security", href: "/admin/settings/security" },
-    { icon: Bell, label: "Notifications", href: "/admin/settings/notifications" },
-    { icon: Globe, label: "Appearance", href: "/admin/settings/appearance" },
-    { icon: HelpCircle, label: "Help & Support", href: "/admin/settings/support" },
+    { icon: Bell, label: "Notifications", href: "/admin/settings/notifications" }
   ]
 
   // Determine which menu items to show based on role

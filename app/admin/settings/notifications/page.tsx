@@ -1,56 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Mail, MessageSquare, AlertTriangle, Save } from "lucide-react"
+import { Bell, Mail, AlertTriangle, Save } from "lucide-react"
 
 // Define proper types for our notification settings
 type EmailNotificationSettings = {
   newShipment: boolean
-  statusUpdates: boolean
-  deliveryConfirmations: boolean
-  weeklyReports: boolean
 }
 
 type PushNotificationSettings = {
   newShipment: boolean
-  statusUpdates: boolean
-  deliveryConfirmations: boolean
-  systemAlerts: boolean
 }
 
-type SmsNotificationSettings = {
-  newShipment: boolean
-  statusUpdates: boolean
-  deliveryConfirmations: boolean
-  systemAlerts: boolean
-}
 
 type NotificationSettings = {
   emailNotifications: EmailNotificationSettings
   pushNotifications: PushNotificationSettings
-  smsNotifications: SmsNotificationSettings
 }
 
 export default function NotificationSettings() {
   const [settings, setSettings] = useState<NotificationSettings>({
     emailNotifications: {
-      newShipment: true,
-      statusUpdates: true,
-      deliveryConfirmations: true,
-      weeklyReports: true,
+      newShipment: true
     },
     pushNotifications: {
-      newShipment: true,
-      statusUpdates: true,
-      deliveryConfirmations: false,
-      systemAlerts: true,
-    },
-    smsNotifications: {
-      newShipment: false,
-      statusUpdates: false,
-      deliveryConfirmations: false,
-      systemAlerts: false,
-    },
+      newShipment: true
+    }
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -74,17 +49,6 @@ export default function NotificationSettings() {
       pushNotifications: {
         ...prev.pushNotifications,
         [setting]: !prev.pushNotifications[setting],
-      },
-    }))
-    setSaveSuccess(false)
-  }
-
-  const handleSmsToggle = (setting: keyof SmsNotificationSettings) => {
-    setSettings((prev) => ({
-      ...prev,
-      smsNotifications: {
-        ...prev.smsNotifications,
-        [setting]: !prev.smsNotifications[setting],
       },
     }))
     setSaveSuccess(false)
@@ -205,37 +169,6 @@ export default function NotificationSettings() {
           </div>
         </div>
 
-        {/* SMS Notifications */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-green-100 rounded-md text-green-700">
-              <MessageSquare size={20} />
-            </div>
-            <h3 className="text-lg font-medium text-black">SMS Notifications</h3>
-          </div>
-
-          <div className="space-y-4">
-            {Object.entries(settings.smsNotifications).map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800 capitalize">
-                    {key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
-                  </p>
-                  <p className="text-sm text-gray-500">{getNotificationDescription("sms", key)}</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={value}
-                    onChange={() => handleSmsToggle(key as keyof SmsNotificationSettings)}
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -245,22 +178,10 @@ export default function NotificationSettings() {
 function getNotificationDescription(type: string, key: string): string {
   const descriptions: Record<string, Record<string, string>> = {
     email: {
-      newShipment: "Receive emails when new shipments are created",
-      statusUpdates: "Get updates when shipment status changes",
-      deliveryConfirmations: "Receive confirmation when shipments are delivered",
-      weeklyReports: "Get weekly summary reports of your shipments",
+      newShipment: "Receive emails when new shipments are created"
     },
     push: {
-      newShipment: "Receive push notifications for new shipments",
-      statusUpdates: "Get push alerts when shipment status changes",
-      deliveryConfirmations: "Receive push notifications for deliveries",
-      systemAlerts: "Get important system alerts and announcements",
-    },
-    sms: {
-      newShipment: "Receive SMS alerts for new shipments",
-      statusUpdates: "Get text messages when shipment status changes",
-      deliveryConfirmations: "Receive SMS notifications for deliveries",
-      systemAlerts: "Get important system alerts via SMS",
+      newShipment: "Receive push notifications for new shipments"
     },
   }
 

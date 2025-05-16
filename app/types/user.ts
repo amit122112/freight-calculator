@@ -3,14 +3,20 @@ export interface User {
   firstName: string
   lastName: string
   email: string
-  role: string
+  role: "admin" | "user"
   company?: string
   phone?: string
-  status: string
+  status: "active" | "inactive" | "pending"
   dateCreated?: string
-  sendInvite: boolean
+  // Address fields
+  address?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  country?: string
+  // New commission field
+  commission?: number
 }
-
 
 export interface UserFormData {
   firstName: string
@@ -21,10 +27,12 @@ export interface UserFormData {
   phone: string
   password: string
   confirmPassword: string
+  // Address fields
   address: string
   city: string
   state: string
   zipCode: string
   country: string
-  //sendInvite: boolean
+  // New commission field
+  commission?: number
 }

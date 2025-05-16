@@ -91,32 +91,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname, router])
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await authApi.login(email, password)
+    // try {
+    //   const response = await authApi.login(email, password)
 
-      // Store token and user data
-      localStorage.setItem("auth_token", response.token)
-      localStorage.setItem("user", JSON.stringify(response.user))
+    //   // Store token and user data
+    //   localStorage.setItem("auth_token", response.token)
+    //   localStorage.setItem("user", JSON.stringify(response.user))
 
-      // Update state
-      setUser(response.user)
-      return response
-    } catch (error) {
-      console.error("Login failed:", error)
-      throw error
-    }
+    //   // Update state
+    //   setUser(response.user)
+    //   return response
+    // } catch (error) {
+    //   console.error("Login failed:", error)
+    //   throw error
+    // }
   }
 
   const logout = async () => {
     try {
       // Try to call logout API if user is logged in
-      if (user) {
-        try {
-          await authApi.logout()
-        } catch (error) {
-          console.error("Logout API call failed:", error)
-        }
-      }
+      // if (user) {
+      //   try {
+      //     await authApi.logout()
+      //   } catch (error) {
+      //     console.error("Logout API call failed:", error)
+      //   }
+      // }
 
       // This will clear local storage regardless of API response
       localStorage.removeItem("auth_token")

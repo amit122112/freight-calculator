@@ -1,2 +1,2 @@
 
-export const API_TOKEN = "Bearer NcMFpGVCQBdiM0bHsPbCMaXl6HbaoKNzQWTMiPzh6d8d8f15"
+export const API_TOKEN = "Bearer YMB8ffIQe3mMESKJyETDqwGttVi3KsPU64sI3LwB3ce89fe2"

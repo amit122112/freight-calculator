@@ -3,7 +3,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react"
+import { Eye, EyeOff} from "lucide-react"
 import { EquityLogo } from "../../components/Logo";
 // Regex expression for email validation. Gmail for now
 //const emailRegex = /([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@gmail([\.])com/

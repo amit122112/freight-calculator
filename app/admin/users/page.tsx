@@ -44,7 +44,7 @@ export default function UsersPage() {
           email: u.email,
           role: u.user_role,
           company: u.company || "",
-          phone: "", // Placeholder - not available in response
+          phone: "", 
           status: u.user_status,
           dateCreated: u.created_at ? new Date(u.created_at).toLocaleDateString() : "-",
         }))
