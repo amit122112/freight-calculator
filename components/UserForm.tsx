@@ -188,6 +188,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
 
       // Prepare the request payload
       const payload = {
+        ...(isEditing && userId ? { id: userId } : {}),
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
@@ -206,7 +207,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
 
       // Make API request
       const response = await fetch(apiUrl, {
-        method: isEditing ? "PUT" : "POST",
+        method: isEditing ? "POST" : "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",

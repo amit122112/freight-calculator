@@ -1,10 +1,10 @@
 
-export const API_TOKEN = "Bearer YMB8ffIQe3mMESKJyETDqwGttVi3KsPU64sI3LwB3ce89fe2"
+export const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN
 
 
-module.exports = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-}
+// module.exports = {
+//   eslint: {
+//     ignoreDuringBuilds: true,
+//   },
+// }
 

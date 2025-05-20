@@ -4,7 +4,9 @@
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff} from "lucide-react"
-import { EquityLogo } from "../../components/Logo";
+import { EquityLogo } from "@/components/Logo";
+import { useAuth } from "@/components/AuthProvider";
+
 // Regex expression for email validation. Gmail for now
 //const emailRegex = /([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@gmail([\.])com/
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -14,7 +16,7 @@ export default function Login() {
   const [emailError, setEmailError] = useState("")
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false)
-  const [token, setToken] = useState("");
+  //const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   //const [rememberMe, setRememberMe] = useState(false);
@@ -37,10 +39,12 @@ export default function Login() {
     }
   }
 
+  const {login} = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setToken("");
+    //setToken("");
     setLoading(true);
   
     // This will validate email format before making a request
@@ -51,36 +55,10 @@ export default function Login() {
     }
   
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
-      const data = await res.json();
-      if (!res.ok) {
-        const msg = data.message || data.error || 'Login failed';
-        setError(msg);
-        setLoading(false);
-        return;
-      }
-  
-      // IF success - store token and optionally redirect
-      setToken(data.token);
-      localStorage.setItem('authToken', data.token);
-      setLoading(false);
-  
-      //router.push("/dashboard")
-      if (data.user && data.user.user_role === "admin") {
-        router.push("/admin")
-      } else {
-        router.push("/dashboard")
-      }
-    } catch (err) {
-      setError("Network error or server not responding.");
+      await login(email, password);
+    } catch (error: any) {
+      setError(error.message || "Login failed");
+    } finally {
       setLoading(false);
     }
   };

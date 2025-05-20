@@ -64,7 +64,7 @@ export const loginUser = async (email: string, password: string) => {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
-      credentials: "include", // Important for cookies if using Laravel Sanctum
+      //credentials: "include", // This will be mportant for cookies if using Laravel Sanctum
       body: JSON.stringify({ email, password }),
     })
 
@@ -74,12 +74,11 @@ export const loginUser = async (email: string, password: string) => {
       throw new Error(data.message || "Login failed")
     }
 
-    // Store the token - the exact field name might differ based on your Laravel API
+    // Store the token 
     if (data.token) {
       setToken(data.token)
     }
 
-    // If the API returns user data, store it
     if (data.user) {
       setUser(data.user)
     }
@@ -97,15 +96,15 @@ export const logoutUser = async () => {
     
     if (token) {
       // Call the logout endpoint
-      await fetch(`${API_URL}/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-      })
+      // await fetch(`${API_URL}/logout`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     "Accept": "application/json",
+      //     "Authorization": `Bearer ${token}`,
+      //   },
+      //   credentials: "include",
+      // })
     }
     
     // Clear local storage regardless of API response
@@ -115,7 +114,7 @@ export const logoutUser = async () => {
     return true
   } catch (error) {
     console.error("Logout error:", error)
-    // Still clear local storage even if API call fails
+    // clear local storage even if API call fails
     removeToken()
     removeUser()
     return false

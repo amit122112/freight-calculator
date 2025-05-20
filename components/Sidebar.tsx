@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {Home,Users,Package,ClipboardList,Settings,Hash,CreditCard,ChevronDown,ChevronRight,User,Shield,Bell,HelpCircle,} from "lucide-react"
+import {Home,Users,Package,ClipboardList,Settings,Hash,CreditCard,ChevronDown,ChevronRight,User,Shield,Bell} from "lucide-react"
 import { usePathname } from "next/navigation"
 
 type SidebarProps = {
