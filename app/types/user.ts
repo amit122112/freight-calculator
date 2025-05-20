@@ -6,7 +6,7 @@ export interface User {
   role: "admin" | "user"
   company?: string
   phone?: string
-  status: "active" | "inactive" | "pending"
+  status: "active" | "pending" | "blocked"
   dateCreated?: string
   // Address fields
   address?: string
@@ -23,6 +23,7 @@ export interface UserFormData {
   lastName: string
   email: string
   role: "admin" | "user"
+  status: "active" | "pending" | "blocked"
   company: string
   phone: string
   password: string

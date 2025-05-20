@@ -40,6 +40,8 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
     lastName: initialData?.lastName || "",
     email: initialData?.email || "",
     role: initialData?.role || "user",
+    status: initialData?.status || "active",
+
     company: initialData?.company || "",
     phone: initialData?.phone || "",
     password: initialData?.password || "",
@@ -192,9 +194,9 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-        role: formData.role,
+        user_role: formData.role,//
         company: formData.company,
-        phone: formData.phone,
+        phone_number: formData.phone,//
         street: formData.address || "",
         city: formData.city,
         state: formData.state,
@@ -202,6 +204,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         country: formData.country,
         ...(isEditing ? { commission: formData.commission } : {}),
         ...(isEditing ? {} : { password: formData.password }),
+        ...(isEditing ? { user_status: formData.status } : {}),
       }
 
 
@@ -233,7 +236,6 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         error instanceof Error ? error.message : "An unexpected error occurred. Please try again or contact support.",
       )
 
-      // For demo purposes, simulate success anyway if we're in development
       // if (process.env.NODE_ENV === "development") {
       //   console.log("Development mode: Simulating success despite error")
       //   setSubmitSuccess(true)
@@ -413,7 +415,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
                 errors.zipCode ? "border-red-500" : "border-gray-400"
               }`}
               maxLength={4}
-              placeholder="0000"
+              placeholder=""
               disabled={isSubmitting}
             />
             {errors.zipCode && <p className="mt-1 text-sm text-red-500">{errors.zipCode}</p>}
@@ -508,6 +510,30 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
           Administrators have full access to manage users and system settings.
         </p>
       </div>
+
+      {isEditing && (
+        <div className="mb-6">
+          <label htmlFor="status" className="block font-semibold text-black mb-2">
+            User Status
+          </label>
+          <select
+            id="status"
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="border border-gray-400 p-2 w-full rounded text-black"
+            disabled={isSubmitting}
+          >
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="blocked">Blocked</option>
+          </select>
+          <p className="mt-1 text-sm text-gray-700">
+            Pending and Blocked users will not be able to log in.
+          </p>
+        </div>
+      )}
+
 
       {/* Commission - Only show when editing */}
       {isEditing && (

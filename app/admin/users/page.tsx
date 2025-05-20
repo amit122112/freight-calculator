@@ -80,11 +80,11 @@ export default function UsersPage() {
     return true
   })
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
+  const getStatusBadgeClass = (user_status: string) => {
+    switch (user_status) {
       case "active":
         return "bg-green-100 text-green-800"
-      case "inactive":
+      case "blocked":
         return "bg-red-100 text-red-800"
       case "pending":
         return "bg-yellow-100 text-yellow-800"
@@ -182,8 +182,8 @@ export default function UsersPage() {
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
               <option value="pending">Pending</option>
+              <option value="blocked">Blocked</option>
             </select>
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
