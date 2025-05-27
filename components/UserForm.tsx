@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Check, AlertCircle, User, Mail, Building, Phone, MapPin, Percent } from "lucide-react"
 import type { UserFormData } from "@/app/types/user"
-import {API_TOKEN} from "@/lib/config"
+import {getToken} from "@/lib/auth"
 // Country codes for phone numbers
 const countryCodes: Record<string, string> = {
   Australia: "+61",
@@ -53,7 +53,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
     zipCode: initialData?.zipCode || "",
     country: initialData?.country || "Australia", // Default to Australia
     // Commission field (only for editing)
-    commission: initialData?.commission || 0,
+    commission: initialData?.commission || 0
   })
 
   const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({})
@@ -61,6 +61,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [phoneWithoutCode, setPhoneWithoutCode] = useState("")
+  const token = getToken()
 
   // Update phone number when country changes
   useEffect(() => {
@@ -186,7 +187,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
 
 
       // Get token from localStorage or use environment variable
-      const token = localStorage.getItem("auth_token") || process.env.NEXT_PUBLIC_API_TOKEN
+      //const token = localStorage.getItem("auth_token") || process.env.NEXT_PUBLIC_API_TOKEN
 
       // Prepare the request payload
       const payload = {
@@ -207,6 +208,8 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         ...(isEditing ? { user_status: formData.status } : {}),
       }
 
+        console.log(payload)
+
 
       // Make API request
       const response = await fetch(apiUrl, {
@@ -214,7 +217,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: API_TOKEN, // or `Bearer ${token}` if token is used
+          Authorization: `Bearer ${token}`, 
         },
         body: JSON.stringify(payload),
       })
@@ -551,9 +554,9 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
               name="commission"
               value={formData.commission}
               onChange={handleChange}
-              min="0"
-              max="100"
-              step="0.01"
+              // min="0"
+              // max="100"
+              step="0.1"
               className={`pl-10 border p-2 w-full rounded text-black ${
                 errors.commission ? "border-red-500" : "border-gray-400"
               }`}

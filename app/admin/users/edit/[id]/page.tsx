@@ -6,12 +6,13 @@ import Link from "next/link"
 import { ArrowLeft, AlertCircle } from "lucide-react"
 import UserForm from "@/components/UserForm"
 import type { UserFormData } from "@/app/types/user"
-import {API_TOKEN} from "@/lib/config"
+import {getToken} from "@/lib/auth"
 
 export default function EditUserPage() {
   const params = useParams()
   const router = useRouter()
   const userId = params.id as string
+  const token = getToken()
 
   const [user, setUser] = useState<Partial<UserFormData> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -29,7 +30,7 @@ export default function EditUserPage() {
                 headers: {
                   "Content-Type": "application/json",
                   "Accept": "application/json",
-                  "Authorization": API_TOKEN
+                  "Authorization": `Bearer ${token}`
                 }
               })
 

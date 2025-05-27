@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search, Filter, Pencil, Trash2, UserPlus } from "lucide-react"
 import type { User } from "../../types/user"
-import {API_TOKEN} from "@/lib/config"
+import {getToken} from "@/lib/auth"
 import { useRouter } from "next/navigation"
 
 
@@ -13,6 +13,7 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterRole, setFilterRole] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const token = getToken()
   const router = useRouter()
 
   // This is Mock user data - API to be integrated in 2nd sprint
@@ -27,7 +28,7 @@ export default function UsersPage() {
 
         const response = await fetch("https://www.hungryblogs.com/api/GetUsers", {
           headers: {
-            Authorization: API_TOKEN,
+            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
         })
@@ -83,13 +84,13 @@ export default function UsersPage() {
   const getStatusBadgeClass = (user_status: string) => {
     switch (user_status) {
       case "active":
-        return "bg-green-100 text-green-800"
+        return "bg-green-200 text-white-800"
       case "blocked":
-        return "bg-red-100 text-red-800"
+        return "bg-red-200 text-red-800"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-200 text-yellow-800"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-200 text-gray-800"
     }
   }
 
@@ -112,7 +113,7 @@ export default function UsersPage() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: API_TOKEN,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ id: userId }), // ID must be in a JSON object
       })

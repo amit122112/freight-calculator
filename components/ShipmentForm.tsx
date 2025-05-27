@@ -6,7 +6,7 @@ import { Plus, Calculator, Send, Truck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import ItemRow from "./ItemRow"
 import type { ShipmentFormData, ShipmentItem } from "@/app/types/shipment"
-import {API_TOKEN} from "@/lib/config"
+import {getToken} from "@/lib/auth"
 
 // Define the carrier quote interface
 interface CarrierQuote {
@@ -55,6 +55,7 @@ export default function ShipmentForm() {
   const [carrierQuotes, setCarrierQuotes] = useState<CarrierQuote[]>([])
   const [isRequestingQuote, setIsRequestingQuote] = useState(false)
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null)
+  const token = getToken()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -192,7 +193,7 @@ export default function ShipmentForm() {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          "Authorization": API_TOKEN
+          "Authorization":`Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       })
