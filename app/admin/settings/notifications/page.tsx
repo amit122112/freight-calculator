@@ -3,10 +3,6 @@
 import { useState } from "react"
 import { Bell, Mail, AlertTriangle, Save } from "lucide-react"
 
-// Define proper types for our notification settings
-type EmailNotificationSettings = {
-  newShipment: boolean
-}
 
 type PushNotificationSettings = {
   newShipment: boolean
@@ -14,15 +10,12 @@ type PushNotificationSettings = {
 
 
 type NotificationSettings = {
-  emailNotifications: EmailNotificationSettings
   pushNotifications: PushNotificationSettings
 }
 
 export default function NotificationSettings() {
   const [settings, setSettings] = useState<NotificationSettings>({
-    emailNotifications: {
-      newShipment: true
-    },
+   
     pushNotifications: {
       newShipment: true
     }
@@ -31,17 +24,6 @@ export default function NotificationSettings() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // Type-safe toggle handlers for each category
-  const handleEmailToggle = (setting: keyof EmailNotificationSettings) => {
-    setSettings((prev) => ({
-      ...prev,
-      emailNotifications: {
-        ...prev.emailNotifications,
-        [setting]: !prev.emailNotifications[setting],
-      },
-    }))
-    setSaveSuccess(false)
-  }
 
   const handlePushToggle = (setting: keyof PushNotificationSettings) => {
     setSettings((prev) => ({
@@ -105,37 +87,7 @@ export default function NotificationSettings() {
       )}
 
       <div className="space-y-6">
-        {/* Email Notifications */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-100 rounded-md text-blue-700">
-              <Mail size={20} />
-            </div>
-            <h3 className="text-lg font-medium text-black">Email Notifications</h3>
-          </div>
 
-          <div className="space-y-4">
-            {Object.entries(settings.emailNotifications).map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800 capitalize">
-                    {key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
-                  </p>
-                  <p className="text-sm text-gray-500">{getNotificationDescription("email", key)}</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={value}
-                    onChange={() => handleEmailToggle(key as keyof EmailNotificationSettings)}
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Push Notifications */}
         <div className="bg-white rounded-lg border p-6">

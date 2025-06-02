@@ -1,40 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, MessageSquare, AlertTriangle, Save } from "lucide-react"
+import { Bell, Mail, AlertTriangle, Save } from "lucide-react"
 
 // Define proper types for our notification settings
 type EmailNotificationSettings = {
   newShipment: boolean
-  statusUpdates: boolean
-  deliveryConfirmations: boolean
 }
 
-
-type SmsNotificationSettings = {
+type PushNotificationSettings = {
   newShipment: boolean
-  statusUpdates: boolean
-  deliveryConfirmations: boolean
 }
+
 
 type NotificationSettings = {
   emailNotifications: EmailNotificationSettings
-  smsNotifications: SmsNotificationSettings
+  pushNotifications: PushNotificationSettings
 }
 
 export default function NotificationSettings() {
   const [settings, setSettings] = useState<NotificationSettings>({
     emailNotifications: {
-      newShipment: true,
-      statusUpdates: true,
-      deliveryConfirmations: true
+      newShipment: true
     },
-    
-    smsNotifications: {
-      newShipment: false,
-      statusUpdates: false,
-      deliveryConfirmations: false,
-    },
+    pushNotifications: {
+      newShipment: true
+    }
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -52,14 +43,12 @@ export default function NotificationSettings() {
     setSaveSuccess(false)
   }
 
-  
-
-  const handleSmsToggle = (setting: keyof SmsNotificationSettings) => {
+  const handlePushToggle = (setting: keyof PushNotificationSettings) => {
     setSettings((prev) => ({
       ...prev,
-      smsNotifications: {
-        ...prev.smsNotifications,
-        [setting]: !prev.smsNotifications[setting],
+      pushNotifications: {
+        ...prev.pushNotifications,
+        [setting]: !prev.pushNotifications[setting],
       },
     }))
     setSaveSuccess(false)
@@ -86,7 +75,7 @@ export default function NotificationSettings() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-semibold text-black">Notification Preferences</h2>
-          <p className="text-gray-600">Manage how you receive notifications about your shipments</p>
+          <p className="text-gray-600">Manage how you receive notifications</p>
         </div>
 
         <button
@@ -148,30 +137,30 @@ export default function NotificationSettings() {
           </div>
         </div>
 
-{/* SMS Notifications */}
+        {/* Push Notifications */}
         <div className="bg-white rounded-lg border p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-green-100 rounded-md text-green-700">
-              <MessageSquare size={20} />
+            <div className="p-2 bg-purple-100 rounded-md text-purple-700">
+              <Bell size={20} />
             </div>
-            <h3 className="text-lg font-medium text-black">SMS Notifications</h3>
+            <h3 className="text-lg font-medium text-black">Push Notifications</h3>
           </div>
 
           <div className="space-y-4">
-            {Object.entries(settings.smsNotifications).map(([key, value]) => (
+            {Object.entries(settings.pushNotifications).map(([key, value]) => (
               <div key={key} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-800 capitalize">
                     {key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
                   </p>
-                  <p className="text-sm text-gray-500">{getNotificationDescription("sms", key)}</p>
+                  <p className="text-sm text-gray-500">{getNotificationDescription("push", key)}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     className="sr-only peer"
                     checked={value}
-                    onChange={() => handleSmsToggle(key as keyof SmsNotificationSettings)}
+                    onChange={() => handlePushToggle(key as keyof PushNotificationSettings)}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
@@ -179,6 +168,7 @@ export default function NotificationSettings() {
             ))}
           </div>
         </div>
+
       </div>
     </div>
   )
@@ -188,14 +178,10 @@ export default function NotificationSettings() {
 function getNotificationDescription(type: string, key: string): string {
   const descriptions: Record<string, Record<string, string>> = {
     email: {
-      newShipment: "Receive emails when new shipments are created",
-      statusUpdates: "Get updates when shipment status changes",
-      deliveryConfirmations: "Receive confirmation when shipments are delivered",
+      newShipment: "Receive emails when new shipments are created"
     },
-    sms: {
-      newShipment: "Receive SMS alerts for new shipments",
-      statusUpdates: "Get text messages when shipment status changes",
-      deliveryConfirmations: "Receive SMS notifications for deliveries"
+    push: {
+      newShipment: "Receive push notifications for new shipments"
     },
   }
 

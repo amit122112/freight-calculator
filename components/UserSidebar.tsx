@@ -16,7 +16,6 @@ export default function UserSidebar() {
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: Package, label: "My Shipments", href: "/dashboard/shipments" },
-    { icon: User, label: "My Profile", href: "/dashboard/profile" },
     { icon: MessageSquare, label: "Support", href: "/dashboard/support" },
   ]
 

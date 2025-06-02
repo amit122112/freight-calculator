@@ -23,9 +23,6 @@ const australianStates = [
   "Western Australia",
 ]
 
-// Default country code if country not found
-const DEFAULT_COUNTRY_CODE = "+61"
-
 
 interface UserFormProps {
   initialData?: Partial<UserFormData>
@@ -68,7 +65,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
     if (formData.country && formData.phone) {
       if (initialData?.phone && phoneWithoutCode === "") {
 
-        const countryCode = countryCodes[formData.country] || DEFAULT_COUNTRY_CODE
+        const countryCode = countryCodes[formData.country]
         if (initialData.phone.startsWith(countryCode)) {
           setPhoneWithoutCode(initialData.phone.substring(countryCode.length).trim())
         } else {
@@ -76,7 +73,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         }
       } else {
         // Update the full phone number with country code
-        const countryCode = countryCodes[formData.country] || DEFAULT_COUNTRY_CODE
+        const countryCode = countryCodes[formData.country]
         setFormData((prev) => ({
           ...prev,
           phone: `${countryCode} ${phoneWithoutCode}`.trim(),
@@ -91,11 +88,14 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
 
     // Special handling for phone number to maintain country code
     if (name === "phone") {
-      setPhoneWithoutCode(value)
-      const countryCode = countryCodes[formData.country] || DEFAULT_COUNTRY_CODE
+      const digitsOnly = value.replace(/\D/g, "")
+      const limitedDigits = digitsOnly.slice(0, 9)
+
+      setPhoneWithoutCode(limitedDigits)
+      const countryCode = countryCodes[formData.country]
       setFormData((prev) => ({
         ...prev,
-        phone: `${countryCode} ${value}`.trim(),
+        phone: `${countryCode} ${limitedDigits}`.trim(),
       }))
     }
     // Special handling for commission to ensure it's a number
@@ -140,6 +140,13 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
       newErrors.email = "Email is required"
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address"
+    }
+
+    // Phone number validation
+    if (phoneWithoutCode) {
+      if (!/^\d{9}$/.test(phoneWithoutCode)) {
+        newErrors.phone = "Phone number must be exactly 9 digits"
+      }
     }
 
     // Password validation for new users
@@ -231,7 +238,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
 
       // Reset form or redirect after success
       setTimeout(() => {
-        router.push("/admin/users")
+        router.push("/dashboard")
       }, 1500)
     } catch (error) {
       console.error("Error saving user:", error)
@@ -239,13 +246,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         error instanceof Error ? error.message : "An unexpected error occurred. Please try again or contact support.",
       )
 
-      // if (process.env.NODE_ENV === "development") {
-      //   console.log("Development mode: Simulating success despite error")
-      //   setSubmitSuccess(true)
-      //   setTimeout(() => {
-      //     router.push("/admin/users")
-      //   }, 1500)
-      // }
+     
     } finally {
       setIsSubmitting(false)
     }
@@ -475,20 +476,24 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
             </div>
             <div className="flex items-center">
               <div className="pl-10 pr-2 py-2 bg-gray-100 border border-r-0 border-gray-400 rounded-l-md text-gray-700 font-medium">
-                {countryCodes[formData.country] || DEFAULT_COUNTRY_CODE}
+                {countryCodes[formData.country]}
               </div>
               <input
                 type="tel"
                 id="phone"
                 name="phone"
-                value={phoneWithoutCode}
+                value={formData.phone}
                 onChange={handleChange}
-                className="border border-l-0 border-gray-400 p-2 w-full rounded-r-md text-black"
+                className={`border border-l-0 p-2 w-full rounded-r-md text-black ${
+                  errors.phone ? "border-red-500" : "border-gray-400"
+                }`}
                 disabled={isSubmitting}
-                placeholder="Phone Number"
+                placeholder=""
+                maxLength={9}
               />
             </div>
           </div>
+          {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
         </div>
       </div>
 

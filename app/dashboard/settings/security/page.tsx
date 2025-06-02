@@ -46,7 +46,7 @@ export default function SecuritySettings() {
       setNewPassword("")
       setConfirmPassword("")
     } catch (err) {
-      setError("Failed to update password. Please try again.")
+      console.error("Failed to update password. Please try again.",err)
     } finally {
       setIsSaving(false)
     }

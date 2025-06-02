@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import ItemRow from "./ItemRow"
 import type { ShipmentFormData, ShipmentItem } from "@/app/types/shipment"
 import {getToken} from "@/lib/auth"
+import {toast} from "react-toastify"
 
 // Define the carrier quote interface
 interface CarrierQuote {
@@ -238,18 +239,45 @@ export default function ShipmentForm() {
 
     try {
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const quotePayload = {
+  pick_up_address: formData.pickupAddress,
+  delivery_address: formData.deliveryAddress,
+  shipping_option: formData.shippingOption,
+  transport_name: carrierName,
+  price: carrierQuotes.find((c) => c.transport_name === carrierName)?.price.toString() || "0",
+  shipments: formData.items.map((item) => ({
+    description: item.description,
+    category: item.category,
+    quantity: item.quantity,
+    weight: item.weight,
+    length: item.dimensions.length,
+    width: item.dimensions.width,
+    height: item.dimensions.height,
+  })),
+}
 
-      console.log("Quote requested for carrier:", carrierName, "with data:", {
-        ...formData,
-        calculationResults,
-      })
+const response = await fetch("https://www.hungryblogs.com/api/RequestQuote", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": `Bearer ${token}`,
+  },
+  body: JSON.stringify(quotePayload),
+})
 
-      // Redirect to dashboard after successful quote request
-      router.push("/dashboard")
+if (!response.ok) {
+  const errText = await response.text()
+  throw new Error(`Failed to send quote request: ${errText}`)
+}
+
+toast.success("Quote request sent successfully.") 
+
+// Success feedback
+router.push("/dashboard")  // or show a toast/alert
+
     } catch (error) {
-      console.error("Error requesting quote:", error)
+      toast.error("Failed to send quote.")
     } finally {
       setIsRequestingQuote(false)
       setSelectedCarrier(null)

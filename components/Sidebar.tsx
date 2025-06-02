@@ -28,7 +28,6 @@ export default function Sidebar({ userRole = "user" }: SidebarProps) {
 
   // User-specific menu items
   const userMenuItems = [
-    { icon: Users, label: "Profile", href: "/admin/profile" },
     { icon: Hash, label: "Update Password", href: "/admin/password" },
     { icon: CreditCard, label: "View Carriers", href: "/admin/carriers" },
   ]

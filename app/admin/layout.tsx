@@ -3,7 +3,7 @@ import Sidebar from "../../components/Sidebar"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 
-// This function should eventually be replaced with actual authentication logic
+// This function should be replaced with authentication logic
 function getUserRole() {
   return "admin" // Change this to "user" to test different views
 }
