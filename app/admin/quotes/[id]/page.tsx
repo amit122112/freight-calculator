@@ -37,6 +37,7 @@ export default function ShipmentDetailPage() {
   const [shipment, setShipment] = useState<ShipmentDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     // Only run on client-side
@@ -95,6 +96,36 @@ export default function ShipmentDetailPage() {
       setError("Please log in to view shipment details")
     }
   }, [id, user])
+
+  const handleQuoteAction = async (action: "accept" | "reject") => {
+    if (!shipment) return
+
+    setActionLoading(action)
+    try {
+      const token = localStorage.getItem("auth_token")
+      if (!token) {
+        alert("Authentication required. Please log in again.")
+        return
+      }
+
+      // For now, just show a success message since we don't have the actual API endpoint
+      // You can replace this with your actual API call
+      console.log(`${action} quote for shipment ${shipment.shipment_id}`)
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Update local state
+      setShipment((prev) => (prev ? { ...prev, status: action === "accept" ? "approved" : "rejected" } : null))
+
+      alert(`Quote ${action === "accept" ? "accepted" : "rejected"} successfully!`)
+    } catch (error) {
+      console.error(`Error ${action}ing quote:`, error)
+      alert(`Failed to ${action} quote. Please try again.`)
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   // Calculate total weight and volume
   const totalWeight = shipment?.details.reduce((sum, item) => sum + item.weight, 0) || 0
@@ -158,7 +189,41 @@ export default function ShipmentDetailPage() {
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start mb-6">
           <h1 className="text-2xl font-bold text-black">Shipment #{shipment.shipment_id}</h1>
-          <div>{getStatusBadge(shipment.status)}</div>
+          <div className="flex items-center gap-3">
+            {getStatusBadge(shipment.status)}
+            {shipment.status === "pending" && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleQuoteAction("accept")}
+                  disabled={actionLoading !== null}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded font-medium transition-colors flex items-center"
+                >
+                  {actionLoading === "accept" ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                      Accepting...
+                    </>
+                  ) : (
+                    "Accept"
+                  )}
+                </button>
+                <button
+                  onClick={() => handleQuoteAction("reject")}
+                  disabled={actionLoading !== null}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded font-medium transition-colors flex items-center"
+                >
+                  {actionLoading === "reject" ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                      Rejecting...
+                    </>
+                  ) : (
+                    "Reject"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -34,6 +34,24 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
     }
   }
 
+  const handleProfileClick = () => {
+    setShowDropdown(false)
+    if (userRole === "admin") {
+      router.push("/admin/settings/account")
+    } else {
+      router.push("/dashboard/settings/account")
+    }
+  }
+
+  const handleSettingsClick = () => {
+    setShowDropdown(false)
+    if (userRole === "admin") {
+      router.push("/admin/settings")
+    } else {
+      router.push("/dashboard/settings")
+    }
+  }
+
   const handleToggleNotifications = () => {
     setShowNotifications(!showNotifications)
     setShowDropdown(false)
@@ -165,12 +183,18 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border">
-                <a href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                <button
+                  onClick={handleProfileClick}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
                   Profile
-                </a>
-                <a href="/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                </button>
+                <button
+                  onClick={handleSettingsClick}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
                   Settings
-                </a>
+                </button>
                 <div className="border-t my-1"></div>
                 <button
                   onClick={handleLogout}
