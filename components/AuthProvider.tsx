@@ -1,8 +1,17 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useRef, useState } from "react"
+import type React from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { loginUser } from "@/lib/auth"
+import {
+  loginUser,
+  isAuthenticated,
+  getToken,
+  removeToken,
+  removeUser,
+  getRememberMe,
+  getTokenExpirationInfo,
+} from "@/lib/auth"
 import { useSessionTimeout } from "@/hooks/useSessionTimeout"
 import { SessionTimeoutWarning } from "@/components/SessionTimeoutWarning"
 
@@ -18,8 +27,9 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   refreshUser: () => Promise<void>
-  login: (_email: string, _password: string) => Promise<void>
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   logout: () => Promise<boolean>
+  tokenInfo: any
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshUser: async () => {},
   login: async () => {},
   logout: async () => false,
+  tokenInfo: null,
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -36,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [tokenInfo, setTokenInfo] = useState<any>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -43,14 +55,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setMounted(true)
   }, [])
 
+  // Update token info whenever user state changes
+  useEffect(() => {
+    if (user) {
+      const info = getTokenExpirationInfo()
+      setTokenInfo(info)
+    } else {
+      setTokenInfo(null)
+    }
+  }, [user])
+
   const logout = async (): Promise<boolean> => {
     try {
-      console.log("AuthProvider - Logout Called")
+      const token = getToken()
 
-      localStorage.removeItem("auth_token")
-      localStorage.removeItem("user_id")
-      localStorage.removeItem("user")
+      if (token) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        } catch (error) {
+          console.warn("Logout API call failed, but continuing with local cleanup")
+        }
+      }
+
+      removeToken()
+      removeUser()
       setUserState(null)
+      setTokenInfo(null)
       router.push("/login")
       return true
     } catch (error) {
@@ -60,38 +97,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const handleSessionTimeout = async () => {
-    console.log("AuthProvider - Session timeout triggered")
     await logout()
   }
 
+  // Get session timeout duration based on remember me
+  const getSessionTimeout = () => {
+    const rememberMe = getRememberMe()
+
+    if (rememberMe) {
+      // For remember me, use a very long timeout (effectively disable active session timeout)
+      return 14 * 24 * 60 // 14 days in minutes
+    } else {
+      // For regular sessions, use 2 hours
+      return 2 * 60 // 2 hours in minutes
+    }
+  }
+
   const { showWarning, timeLeft, dismissWarning } = useSessionTimeout({
-    timeoutInMinutes: 2,
+    timeoutInMinutes: getSessionTimeout(),
     warningInSeconds: 30,
     onTimeout: handleSessionTimeout,
     isAuthenticated: !!user,
   })
 
-  useEffect(() => {
-    console.log("AuthProvider - User state changed:", user)
-    console.log("AuthProvider - Is authenticated:", !!user)
-  }, [user])
-
-  useEffect(() => {
-    console.log("AuthProvider - Session timeout state:", {
-      showWarning,
-      timeLeft,
-      isAuthenticated: !!user,
-    })
-  }, [showWarning, timeLeft, user])
-
   const refreshUser = async () => {
     try {
       if (typeof window === "undefined") return
 
-      const token = localStorage.getItem("auth_token")
+      const token = getToken()
       if (!token) {
-        console.warn("No token found. Logging out.")
-        await logout()
+        setUserState(null)
         return
       }
 
@@ -114,14 +149,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (response.status === 401) {
-        console.warn("Token expired or invalid. Logging out...")
         await logout()
         return
       }
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error("User fetch failed:", response.status, errorText)
         throw new Error("Failed to fetch user data")
       }
 
@@ -137,9 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       if (typeof window === "undefined") return
 
-      const token = localStorage.getItem("auth_token")
-      if (!token) {
-        console.warn("No auth token found on load, skipping refresh.")
+      if (!isAuthenticated()) {
         setLoading(false)
         return
       }
@@ -154,20 +184,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    checkAuth()
+    const timer = setTimeout(checkAuth, 100)
+    return () => clearTimeout(timer)
   }, [pathname])
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     try {
-      const data = await loginUser(email, password)
-
-      localStorage.setItem("auth_token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      localStorage.setItem("user_id", JSON.stringify(data.user.id))
-
-      //console.log(data.token)
+      const data = await loginUser(email, password, rememberMe)
 
       setUserState(data.user)
+
+      const info = getTokenExpirationInfo()
+      setTokenInfo(info)
 
       if (data.user?.user_role === "admin") {
         router.push("/admin")
@@ -183,7 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   if (!mounted) return null
 
   return (
-    <AuthContext.Provider value={{ user, loading, refreshUser, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser, login, logout, tokenInfo }}>
       {children}
       {showWarning && <SessionTimeoutWarning timeLeft={timeLeft} onContinue={dismissWarning} />}
     </AuthContext.Provider>

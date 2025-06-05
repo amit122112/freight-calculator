@@ -1,18 +1,79 @@
 "use client"
 
-
-import { useState } from "react"
-import { Package, Clock, Check, Plus, Search } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Package, Clock, Check, Plus, Search, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { getToken } from "@/lib/auth"
+
+interface DashboardStats {
+  total_users: number
+  active_users: number
+  inactive_users: number
+  total_shipments: number
+  active_shipments: number
+  inactive_shipments: number
+}
 
 export default function UserDashboard() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    total_users: 0,
+    active_users: 0,
+    inactive_users: 0,
+    total_shipments: 0,
+    active_shipments: 0,
+    inactive_shipments: 0,
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const[searchQuery, setSearchQuery] = useState("")
-  // fetch this data from  API later
+  // Fetch dashboard data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = getToken()
+        if (!token) {
+          setError("Authentication token not found")
+          return
+        }
+
+        const response = await fetch("https://hungryblogs.com/api/Dashboard", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data && data.details) {
+          setDashboardStats(data.details)
+        } else {
+          console.warn("Unexpected API response structure:", data)
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err)
+        setError(err instanceof Error ? err.message : "Failed to fetch dashboard data")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  // User stats derived from API data
   const userStats = {
-    activeShipments: 0,
-    pendingShipments: 0,
-    completedShipments: 0,
+    activeShipments: dashboardStats.active_shipments,
+    pendingShipments: dashboardStats.inactive_shipments,
+    completedShipments:
+      dashboardStats.total_shipments - (dashboardStats.active_shipments + dashboardStats.inactive_shipments),
   }
 
   const recentShipments = [
@@ -60,48 +121,60 @@ export default function UserDashboard() {
         </Link>
       </div>
 
+      {/* Error message if API fetch fails */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center text-red-700">
+          <AlertCircle size={20} className="mr-2 flex-shrink-0" />
+          <span>Error loading dashboard data: {error}</span>
+        </div>
+      )}
+
       {/* Dashboard stats section */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-black mb-4">Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-100 transform transition-all duration-500 hover:scale-107 ">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg mr-3 ">
-                <Package className="text-blue-600" size={24} />
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-100 transform transition-all duration-500 hover:scale-107">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                  <Package className="text-blue-600" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-medium text-black">Active Shipments</h3>
+                  <p className="text-2xl font-bold text-black">{userStats.activeShipments}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium text-black ">Active Shipments</h3>
-                <p className="text-2xl font-bold text-black">{userStats.activeShipments}</p>
+            </div>
+
+            <div className="bg-yellow-50 p-4 rounded-lg shadow border border-yellow-100 transform transition-all duration-500 hover:scale-107">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+                  <Clock className="text-yellow-600" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-medium text-black">Pending Shipments</h3>
+                  <p className="text-2xl font-bold text-gray-800">{userStats.pendingShipments}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg shadow border border-green-100 transform transition-all duration-500 hover:scale-107">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg mr-3">
+                  <Check className="text-green-600" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-medium text-black">Completed Shipments</h3>
+                  <p className="text-2xl font-bold text-gray-800">{userStats.completedShipments}</p>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="bg-yellow-50 p-4 rounded-lg shadow border border-yellow-100 transform transition-all duration-500 hover:scale-107 ">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg mr-3">
-                <Clock className="text-yellow-600" size={24} />
-              </div>
-              <div>
-                <h3 className="font-medium text-black">Pending Shipments</h3>
-                <p className="text-2xl font-bold text-gray-800">{userStats.pendingShipments}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-green-50 p-4 rounded-lg shadow border border-green-100 transform transition-all duration-500 hover:scale-107 ">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg mr-3">
-                <Check className="text-green-600" size={24} />
-              </div>
-              <div>
-                <h3 className="font-medium text-black">Completed Shipments</h3>
-                <p className="text-2xl font-bold text-gray-800">{userStats.completedShipments}</p>
-              </div>
-            </div>
-          </div>
-
-          
-        </div>
+        )}
       </div>
 
       {/* Recent activity section */}
@@ -179,10 +252,7 @@ export default function UserDashboard() {
             View All Shipments
           </Link>
         </div>
-      
-
       </div>
     </div>
   )
 }
-

@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search, Filter, Pencil, Trash2, UserPlus } from "lucide-react"
+import { Search, Filter, Pencil, Trash2, UserPlus, Eye, EyeOff } from "lucide-react"
 import type { User } from "../../types/user"
-import {getToken} from "@/lib/auth"
+import { getToken } from "@/lib/auth"
 import { useRouter } from "next/navigation"
-
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -16,58 +15,86 @@ export default function UsersPage() {
   const token = getToken()
   const router = useRouter()
 
-  // This is Mock user data - API to be integrated in 2nd sprint
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [deleteStep, setDeleteStep] = useState<"confirm" | "verify">("confirm")
+  const [adminPassword, setAdminPassword] = useState("")
+  const [adminPasswordError, setAdminPasswordError] = useState("")
+  const [showAdminPassword, setShowAdminPassword] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // const token = localStorage.getItem("token")
-        // if (!token) {
-        //   console.error("Token missing. Please login.")
-        //   return
-        // }
+        const token = getToken()
+        if (!token) {
+          setErrorMessage("Authentication token missing. Please login.")
+          return
+        }
 
         const response = await fetch("https://www.hungryblogs.com/api/GetUsers", {
+          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
             Accept: "application/json",
+            Authorization: `Bearer ${token}`,
           },
         })
 
         if (!response.ok) {
-          throw new Error("Failed to fetch users")
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const data = await response.json()
-        const formatted = data.details.map((u: any) => ({
-          id: u.id,
-          firstName: u.first_name,
-          lastName: u.last_name || "",
-          email: u.email,
-          role: u.user_role,
-          company: u.company || "",
-          phone: "", // Placeholder - not available in response
-          status: u.user_status,
-          dateCreated: u.created_at ? new Date(u.created_at).toLocaleDateString() : "-",
-        }))
 
-        setUsers(formatted)
+        if (data && data.details && Array.isArray(data.details)) {
+          const formatted = data.details.map((u: any) => ({
+            id: u.id,
+            firstName: u.first_name || "",
+            lastName: u.last_name || "",
+            email: u.email || "",
+            role: u.user_role || "user",
+            company: u.company || "",
+            phone: u.phone_number || "",
+            status: u.user_status || "active",
+            dateCreated: u.created_at ? new Date(u.created_at).toLocaleDateString() : "-",
+          }))
+          setUsers(formatted)
+          setSuccessMessage(`Loaded ${formatted.length} users successfully`)
+        } else {
+          console.warn("Unexpected API response structure:", data)
+          setUsers([])
+          setErrorMessage("No users found")
+        }
       } catch (err) {
         console.error("Error fetching users:", err)
+        setUsers([])
+        setErrorMessage("Failed to load users. Please try again.")
       }
     }
 
     fetchUsers()
-  }, [])
+  }, [token])
+
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (successMessage || errorMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("")
+        setErrorMessage("")
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage, errorMessage])
 
   // Filter and search users
   const filteredUsers = users.filter((user) => {
-    // Apply role filter
     if (filterRole !== "all" && user.role !== filterRole) return false
-
-    // Apply status filter
     if (filterStatus !== "all" && user.status !== filterStatus) return false
 
-    // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       return (
@@ -98,42 +125,138 @@ export default function UsersPage() {
     router.push(`/admin/users/edit/${userId}`)
   }
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return
-  
+  const handleDeleteUser = (user: User) => {
+    setUserToDelete(user)
+    setShowDeleteModal(true)
+    setDeleteStep("confirm")
+    setAdminPassword("")
+    setAdminPasswordError("")
+  }
+
+  const verifyAdminPassword = async (password: string): Promise<boolean> => {
     try {
-      // const token = localStorage.getItem("token")
-      // if (!token) {
-      //   alert("Authentication token missing.")
-      //   return
-      // }
-  
-      const response = await fetch("https://www.hungryblogs.com/api/DeleteUser", {
+      console.log("Verifying admin password for delete operation...")
+
+      // For testing purposes, require a specific test password
+      // Replace this with actual API call when ready
+      const testPassword = "admin123" // You can change this to any password you want for testing
+
+      if (password === testPassword) {
+        console.log("Admin password verified successfully")
+        return true
+      } else {
+        console.log("Admin password verification failed")
+        return false
+      }
+
+      /*
+      // Uncomment this when you have the API endpoint ready
+      const response = await fetch(`https://hungryblogs.com/api/VerifyAdminPassword`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ id: userId }), // ID must be in a JSON object
+        body: JSON.stringify({ password }),
       })
-  
-      if (!response.ok) {
-        throw new Error("Failed to delete user")
+
+      if (response.ok) {
+        const data = await response.json()
+        return data.valid || response.status === 200
       }
-  
-      // Remove user from list in UI
-      setUsers((prev) => prev.filter((user) => user.id !== userId))
-      alert(" User deleted successfully.")
-    } catch (err) {
-      console.error("Delete error:", err)
-      alert(" Could not delete user.")
+
+      return false
+      */
+    } catch (error) {
+      console.error("Error verifying admin password:", error)
+      return false
     }
   }
-  
+
+  const handleDeleteConfirmation = async () => {
+    if (deleteStep === "confirm") {
+      setDeleteStep("verify")
+      return
+    }
+
+    if (deleteStep === "verify") {
+      if (!adminPassword) {
+        setAdminPasswordError("Admin password is required")
+        return
+      }
+
+      setAdminPasswordError("")
+      setIsDeleting(true)
+
+      // Verify admin password
+      const isValidPassword = await verifyAdminPassword(adminPassword)
+
+      if (!isValidPassword) {
+        setAdminPasswordError("Invalid admin password. Please try again.")
+        setIsDeleting(false)
+        return
+      }
+
+      // Proceed with deletion
+      try {
+        const response = await fetch("https://www.hungryblogs.com/api/DeleteUser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id: userToDelete?.id }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        // Remove user from list in UI
+        setUsers((prev) => prev.filter((user) => user.id !== userToDelete?.id))
+
+        // Close modal and reset state
+        setShowDeleteModal(false)
+        setUserToDelete(null)
+        setDeleteStep("confirm")
+        setAdminPassword("")
+        setAdminPasswordError("")
+
+        setSuccessMessage(`User ${userToDelete?.firstName} ${userToDelete?.lastName} deleted successfully`)
+      } catch (err) {
+        console.error("Delete error:", err)
+        setErrorMessage("Could not delete user. Please try again.")
+      } finally {
+        setIsDeleting(false)
+      }
+    }
+  }
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false)
+    setUserToDelete(null)
+    setDeleteStep("confirm")
+    setAdminPassword("")
+    setAdminPasswordError("")
+    setShowAdminPassword(false)
+  }
 
   return (
     <div className="bg-white">
+      {/* Success and Error Messages
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded">
+          <p>{successMessage}</p>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded">
+          <p>{errorMessage}</p>
+        </div>
+      )} */}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-black">User Management</h1>
@@ -146,6 +269,30 @@ export default function UsersPage() {
           <UserPlus size={16} />
           <span>Add User</span>
         </Link>
+      </div>
+
+      {/* Test Password Info Banner */}
+      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-blue-800">Test</h3>
+            <div className="mt-1 text-sm text-blue-700">
+              <p>
+                For testing purposes, use password: <span className="font-mono bg-blue-100 px-1 rounded">admin123</span>{" "}
+                to delete users.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters and Search */}
@@ -233,7 +380,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-black">{user.dateCreated}</td>
                     <td className="px-4 py-3 text-sm text-right">
-                    <div className="flex space-x-2">
+                      <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditUser(user.id)}
                           className="p-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
@@ -243,7 +390,7 @@ export default function UsersPage() {
                           <span className="sr-only">Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => handleDeleteUser(user)}
                           className="p-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
                           title="Delete User"
                         >
@@ -265,7 +412,7 @@ export default function UsersPage() {
           </table>
         </div>
 
-        {/* Pagination - simplified for this example */}
+        {/* Pagination */}
         <div className="px-4 py-3 border-t flex justify-between items-center text-black">
           <div className="text-sm text-gray-700">
             Showing <span className="font-medium">{filteredUsers.length}</span> of{" "}
@@ -278,6 +425,109 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Modal */}
+      {showDeleteModal && userToDelete && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden pointer-events-auto border-2 border-gray-300">
+            {/* Header */}
+            <div className="px-6 py-4 border-b">
+              <h3 className="text-lg font-medium text-gray-900">
+                {deleteStep === "confirm" ? "Delete User Account" : "Admin Verification"}
+              </h3>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4">
+              {deleteStep === "confirm" ? (
+                <div>
+                  <p className="text-gray-700 mb-4">
+                    Do you want to permanently delete the account for{" "}
+                    <span className="font-medium text-gray-900">
+                      {userToDelete.firstName} {userToDelete.lastName}
+                    </span>
+                    ?
+                  </p>
+                  <p className="text-sm text-red-600">This action cannot be undone.</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-700 mb-4">Please enter your administrator password to confirm deletion:</p>
+                  <div className="mb-4">
+                    <label htmlFor="deleteAdminPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                      Admin Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showAdminPassword ? "text" : "password"}
+                        id="deleteAdminPassword"
+                        value={adminPassword}
+                        onChange={(e) => {
+                          setAdminPassword(e.target.value)
+                          setAdminPasswordError("")
+                        }}
+                        className={`w-full border rounded-md py-2 px-3 pr-10 text-black ${
+                          adminPasswordError ? "border-red-500" : "border-gray-300"
+                        }`}
+                        placeholder="Enter your admin password"
+                        disabled={isDeleting}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        disabled={isDeleting}
+                      >
+                        {showAdminPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                    {adminPasswordError && <p className="mt-1 text-sm text-red-500">{adminPasswordError}</p>}
+                    <p className="mt-1 text-xs text-gray-500">For testing, use: admin123</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              {deleteStep === "confirm" ? (
+                <button
+                  onClick={handleDeleteConfirmation}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+                >
+                  Yes, Delete
+                </button>
+              ) : (
+                <button
+                  onClick={handleDeleteConfirmation}
+                  disabled={!adminPassword || isDeleting}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-md transition-colors flex items-center"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin -ml-1 mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Confirm Delete"
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -6,8 +6,8 @@ import { Plus, Calculator, Send, Truck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import ItemRow from "./ItemRow"
 import type { ShipmentFormData, ShipmentItem } from "@/app/types/shipment"
-import {getToken} from "@/lib/auth"
-import {toast} from "react-toastify"
+import { getToken } from "@/lib/auth"
+import { toast } from "react-toastify"
 
 // Define the carrier quote interface
 interface CarrierQuote {
@@ -188,40 +188,34 @@ export default function ShipmentForm() {
       //     return
       //   }
 
-
       const response = await fetch(`https://www.hungryblogs.com/api/GetQuote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization":`Bearer ${token}`,
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       })
-      
+
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(" Server Error Response:", errorText)
-        throw new Error(`Failed to fetch carrier quotes: ${errorText}`)
+        console.error("Server Error Response:", errorText)
+        throw new Error(`Failed to fetch carrier quotes: ${response.status} - ${errorText}`)
       }
-      
+
       const data: CarrierQuote[] = await response.json()
-      
+
       console.log("API Quote Response:", data)
 
       // Mark unavailable carriers explicitly if not returned
       const allCarriers = ["TNT", "TGE"]
       const formattedQuotes = allCarriers.map((carrier) => {
         const match = data.find((q) => q.transport_name === carrier)
-        return match
-          ? { ...match, available: true }
-          : { transport_name: carrier, price: 0, available: false }
+        return match ? { ...match, available: true } : { transport_name: carrier, price: 0, available: false }
       })
 
-      
-      
       setCarrierQuotes(formattedQuotes)
-      
 
       setCalculationDone(true)
     } catch (error) {
@@ -238,44 +232,42 @@ export default function ShipmentForm() {
     setSelectedCarrier(carrierName)
 
     try {
-      
       const quotePayload = {
-  pick_up_address: formData.pickupAddress,
-  delivery_address: formData.deliveryAddress,
-  shipping_option: formData.shippingOption,
-  transport_name: carrierName,
-  price: carrierQuotes.find((c) => c.transport_name === carrierName)?.price.toString() || "0",
-  shipments: formData.items.map((item) => ({
-    description: item.description,
-    category: item.category,
-    quantity: item.quantity,
-    weight: item.weight,
-    length: item.dimensions.length,
-    width: item.dimensions.width,
-    height: item.dimensions.height,
-  })),
-}
+        pick_up_address: formData.pickupAddress,
+        delivery_address: formData.deliveryAddress,
+        shipping_option: formData.shippingOption,
+        transport_name: carrierName,
+        price: carrierQuotes.find((c) => c.transport_name === carrierName)?.price.toString() || "0",
+        shipments: formData.items.map((item) => ({
+          description: item.description,
+          category: item.category,
+          quantity: item.quantity,
+          weight: item.weight,
+          length: item.dimensions.length,
+          width: item.dimensions.width,
+          height: item.dimensions.height,
+        })),
+      }
 
-const response = await fetch("https://www.hungryblogs.com/api/RequestQuote", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": `Bearer ${token}`,
-  },
-  body: JSON.stringify(quotePayload),
-})
+      const response = await fetch("https://www.hungryblogs.com/api/RequestQuote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(quotePayload),
+      })
 
-if (!response.ok) {
-  const errText = await response.text()
-  throw new Error(`Failed to send quote request: ${errText}`)
-}
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`Failed to send quote request: ${response.status} - ${errText}`)
+      }
 
-toast.success("Quote request sent successfully.") 
+      toast.success("Quote request sent successfully.")
 
-// Success feedback
-router.push("/dashboard")  // or show a toast/alert
-
+      // Success feedback
+      router.push("/dashboard") // or show a toast/alert
     } catch (error) {
       toast.error("Failed to send quote.")
     } finally {
@@ -298,19 +290,9 @@ router.push("/dashboard")  // or show a toast/alert
     setCarrierQuotes([])
   }
 
-  const totalLength = formData.items.reduce(
-    (sum, item) => sum + (parseFloat(item.dimensions.length) || 0),
-    0
-  )
-  const totalWidth = formData.items.reduce(
-    (sum, item) => sum + (parseFloat(item.dimensions.width) || 0),
-    0
-  )
-  const totalHeight = formData.items.reduce(
-    (sum, item) => sum + (parseFloat(item.dimensions.height) || 0),
-    0
-  )
-  
+  const totalLength = formData.items.reduce((sum, item) => sum + (Number.parseFloat(item.dimensions.length) || 0), 0)
+  const totalWidth = formData.items.reduce((sum, item) => sum + (Number.parseFloat(item.dimensions.width) || 0), 0)
+  const totalHeight = formData.items.reduce((sum, item) => sum + (Number.parseFloat(item.dimensions.height) || 0), 0)
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-4xl">
@@ -469,7 +451,8 @@ router.push("/dashboard")  // or show a toast/alert
                 Shipment details (Quantity: {totalQuantity}, Weight: {totalWeight.toFixed(2)} kg)
               </p>
               <p className="text-lg">
-                Dimensions (Length: {totalLength.toFixed(2)} m, Width: {totalWidth.toFixed(2)} m, Height: {totalHeight.toFixed(2)} m)
+                Dimensions (Length: {totalLength.toFixed(2)} m, Width: {totalWidth.toFixed(2)} m, Height:{" "}
+                {totalHeight.toFixed(2)} m)
               </p>
             </div>
           </div>
@@ -480,7 +463,9 @@ router.push("/dashboard")  // or show a toast/alert
               <div
                 key={index}
                 className={`p-6 rounded-lg ${
-                  quote.available ? "bg-gray-200 border text-black border-gray-400" : "bg-gray-100 border text-black border-gray-400"
+                  quote.available
+                    ? "bg-gray-200 border text-black border-gray-400"
+                    : "bg-gray-100 border text-black border-gray-400"
                 }`}
               >
                 <div className="flex items-center justify-center mb-4">
@@ -495,7 +480,7 @@ router.push("/dashboard")  // or show a toast/alert
                     <div className="mb-6">
                       <p className="text-lg font-semibold mb-2">
                         {/* Total Cost: ${quote.price.toFixed(2)} + Fuel Levy + GST */}
-                        Total Cost: ${quote.price} + 24.3% Fuel Levy + GST 
+                        Total Cost: ${quote.price} + 24.3% Fuel Levy + GST
                       </p>
                       <p className="text-sm text-gray-700">
                         Additional charges may apply please contact Equity Logistics for final quotation

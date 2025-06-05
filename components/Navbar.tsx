@@ -61,7 +61,11 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
       try {
         const token = getToken()
         const user = getUser()
-        if (!token || userRole !== "admin") return
+
+        // Only fetch notifications if user is authenticated and is an admin
+        if (!token || !user || userRole !== "admin") {
+          return
+        }
 
         const response = await fetch("https://hungryblogs.com/api/GetNotifications", {
           headers: {
@@ -70,22 +74,35 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
           },
         })
 
-        if (!response.ok) throw new Error("Failed to fetch notifications")
+        if (!response.ok) {
+          // Don't log error for 401/403 as these are expected when not authenticated
+          if (response.status === 401 || response.status === 403) {
+            return
+          }
+          throw new Error(`Failed to fetch notifications: ${response.status}`)
+        }
 
         const raw = await response.json()
-        const fetched: Notification[] = raw.Notifications
-          ? Object.values(raw.Notifications)
-          : []
+        const fetched: Notification[] = raw.Notifications ? Object.values(raw.Notifications) : []
 
         const unread = fetched.filter((n) => n.read === "unread").length
         setNotifications(fetched)
         setUnreadCount(unread)
       } catch (error) {
-        console.error("Error fetching notifications:", error)
+        // Only log errors that aren't authentication related
+        if (error instanceof Error && !error.message.includes("401") && !error.message.includes("403")) {
+          console.error("Error fetching notifications:", error)
+        }
+        // Reset notification state on error
+        setNotifications([])
+        setUnreadCount(0)
       }
     }
 
-    fetchNotifications()
+    // Add a small delay to ensure auth state is properly initialized
+    const timeoutId = setTimeout(fetchNotifications, 100)
+
+    return () => clearTimeout(timeoutId)
   }, [userRole])
 
   return (
@@ -119,11 +136,12 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
                     [...notifications].reverse().map((n, idx) => (
                       <div key={idx} className="px-4 py-2 border-b hover:bg-gray-50">
                         <p className="text-sm text-gray-800">
-                          {n.first_name || "A user"} {n.name === "Quote Request"
+                          {n.user_name || "A user"}{" "}
+                          {n.name === "Quote Request"
                             ? "has requested a quote"
                             : n.name === "Support Request"
-                            ? "has a support request"
-                            : "has a new notification"}
+                              ? "has a support request"
+                              : "has a new notification"}
                         </p>
                         <p className="text-xs text-gray-500">{new Date(n.created_at).toLocaleString()}</p>
                       </div>
@@ -135,7 +153,10 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
           )}
 
           <div className="relative dropdown-area">
-            <button onClick={handleToggleDropdown} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-100">
+            <button
+              onClick={handleToggleDropdown}
+              className="flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
+            >
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                 <User size={16} className="text-white" />
               </div>
@@ -151,7 +172,10 @@ export default function Navbar({ userRole = "user" }: { userRole?: string }) {
                   Settings
                 </a>
                 <div className="border-t my-1"></div>
-                <button onClick={handleLogout} className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                >
                   <LogOut size={16} className="mr-2" /> Logout
                 </button>
               </div>

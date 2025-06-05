@@ -34,27 +34,16 @@ export const useSessionTimeout = ({
     isAuthenticatedRef.current = isAuthenticated
   }, [isAuthenticated])
 
-  // Debug logging
-  //useEffect(() => {
-    // console.log("🔧 Session timeout hook initialized:", {
-  //     isAuthenticated,
-  //     timeoutInMinutes,
-  //     warningInSeconds,
-  //     timeoutInMs,
-  //     warningInMs,
-  //   })
-  // }, [isAuthenticated, timeoutInMinutes, warningInSeconds, timeoutInMs, warningInMs])
-
   // Handle timeout
   const handleTimeout = useCallback(async () => {
-    // console.log("⏰ Session timeout triggered! isAuthenticated:", isAuthenticatedRef.current)
+    console.log("⏰ Session timeout triggered! isAuthenticated:", isAuthenticatedRef.current)
     if (isAuthenticatedRef.current) {
       setShowWarning(false)
-      // console.log("🚪 Calling onTimeout function...")
+      console.log("🚪 Calling onTimeout function...")
       await onTimeout()
-      // console.log("✅ onTimeout completed") // ✅ Add this
+      console.log("✅ onTimeout completed")
     } else {
-      // console.log("❌ User not authenticated, skipping timeout")
+      console.log("❌ User not authenticated, skipping timeout")
     }
   }, [onTimeout])
 
@@ -104,13 +93,9 @@ export const useSessionTimeout = ({
 
     const warningTime = timeoutInMs - warningInMs
 
-    // console.log("⏱️ Setting up new timers...")
-    // console.log(`📢 Warning will show in: ${warningTime / 1000} seconds (${warningTime / 60000} minutes)`)
-    // console.log(`⏰ Timeout will occur in: ${timeoutInMs / 1000} seconds (${timeoutInMs / 60000} minutes)`)
-
     // Set warning timer
     warningRef.current = setTimeout(() => {
-      // console.log("⚠️ WARNING TIMER TRIGGERED - showing warning dialog")
+      console.log("⚠️ WARNING TIMER TRIGGERED - showing warning dialog")
       setShowWarning(true)
       setTimeLeft(warningInSeconds)
 
@@ -118,13 +103,13 @@ export const useSessionTimeout = ({
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           const newTime = prev - 1
-          // console.log("⏳ Countdown:", newTime)
+          console.log("⏳ Countdown:", newTime)
           if (newTime <= 0) {
             if (intervalRef.current) {
               clearInterval(intervalRef.current)
               intervalRef.current = null
             }
-            // console.log("🚨 Countdown hit zero. Triggering auto-logout.")
+            console.log("🚨 Countdown hit zero. Triggering auto-logout.")
             handleTimeout() // Force logout
             return 0
           }
@@ -135,28 +120,26 @@ export const useSessionTimeout = ({
 
     // Set timeout timer
     timeoutRef.current = setTimeout(() => {
-      //console.log("💥 TIMEOUT TIMER TRIGGERED - calling handleTimeout")
+      console.log("💥 TIMEOUT TIMER TRIGGERED - calling handleTimeout")
       handleTimeout()
     }, timeoutInMs)
 
-    // console.log("✅ Timers set up successfully")
-    // console.log("🎯 Warning timer ID:", warningRef.current)
-    // console.log("🎯 Timeout timer ID:", timeoutRef.current)
+    console.log("✅ Timers set up successfully")
   }, [timeoutInMs, warningInMs, warningInSeconds, handleTimeout, clearAllTimers])
 
   // Function to dismiss warning and reset timeout
   const dismissWarning = useCallback(() => {
-    //console.log("✋ Warning dismissed by user")
+    console.log("✋ Warning dismissed by user")
     setShowWarning(false)
     resetTimeout()
   }, [resetTimeout])
 
   // Track user activity - ONLY set up once when component mounts
   useEffect(() => {
-    //console.log("🎮 Setting up activity tracking. isAuthenticated:", isAuthenticated)
+    console.log("🎮 Setting up activity tracking. isAuthenticated:", isAuthenticated)
 
     if (!isAuthenticated) {
-      //console.log("❌ User not authenticated, skipping activity tracking")
+      console.log("❌ User not authenticated, skipping activity tracking")
       clearAllTimers()
       setShowWarning(false)
       return
