@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, type ChangeEvent } from "react"
+import { useState, type ChangeEvent, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
 import { EquityLogo } from "@/components/Logo"
@@ -21,6 +21,32 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter()
+  const { user, loading: authLoading, login } = useAuth()
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.user_role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
+    }
+  }, [user, authLoading, router])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Don't render login form if user is already authenticated
+  if (user) {
+    return null
+  }
 
   // This will validate email format on blur
   const handleEmailBlur = () => {
@@ -38,8 +64,6 @@ export default function Login() {
       setEmailError("")
     }
   }
-
-  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
