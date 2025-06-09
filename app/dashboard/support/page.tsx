@@ -4,30 +4,66 @@ import type React from "react"
 
 import { useState } from "react"
 import { Phone, Mail, FileText, Send } from "lucide-react"
+import { getToken } from "@/lib/auth"
+import { useAuth } from "@/components/AuthProvider"
 
 export default function SupportPage() {
   const [supportMessage, setSupportMessage] = useState("")
   const [supportCategory, setSupportCategory] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+  const { user } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setSubmitError("")
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const token = getToken()
 
-    // Success state
-    setIsSubmitting(false)
-    setSubmitSuccess(true)
-    setSupportMessage("")
-    setSupportCategory("")
+      // Log the request details for debugging
+      console.log("Sending support request:", {
+        category: supportCategory,
+        message: supportMessage,
+      })
 
-    // Reset success message after 5 seconds
-    setTimeout(() => {
-      setSubmitSuccess(false)
-    }, 5000)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/Support`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          category: supportCategory,
+          message: supportMessage,
+        }),
+      })
+
+      console.log("Support API response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error("Support API error:", errorData)
+        throw new Error(`Error submitting support request: ${response.status} ${errorData}`)
+      }
+
+      // Success state
+      setIsSubmitting(false)
+      setSubmitSuccess(true)
+      setSupportMessage("")
+      setSupportCategory("")
+
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setSubmitSuccess(false)
+      }, 5000)
+    } catch (error) {
+      console.error("Support request failed:", error)
+      setIsSubmitting(false)
+      setSubmitError(error instanceof Error ? error.message : "Failed to submit support request")
+    }
   }
 
   return (
@@ -96,6 +132,28 @@ export default function SupportPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Error</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{submitError}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
                 Category
@@ -108,10 +166,10 @@ export default function SupportPage() {
                 required
               >
                 <option value="">Select a category</option>
-                <option value="shipment">Shipment Issue</option>
-                <option value="account">Account Problem</option>
-                <option value="billing">Billing Question</option>
-                <option value="other">Other</option>
+                <option value="Shipment">Shipment Issue</option>
+                <option value="Account">Account Problem</option>
+                <option value="Billing">Billing Question</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
