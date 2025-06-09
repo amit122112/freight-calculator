@@ -6,6 +6,7 @@ import { Search, Filter, Pencil, Trash2, UserPlus, Eye, EyeOff } from "lucide-re
 import type { User } from "../../types/user"
 import { getToken } from "@/lib/auth"
 import { useRouter } from "next/navigation"
+import { toast } from "react-toastify"
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -23,15 +24,16 @@ export default function UsersPage() {
   const [adminPasswordError, setAdminPasswordError] = useState("")
   const [showAdminPassword, setShowAdminPassword] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
-  const [errorMessage, setErrorMessage] = useState("")
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const token = getToken()
         if (!token) {
-          setErrorMessage("Authentication token missing. Please login.")
+          console.error("Authentication token missing. Please login.")
           return
         }
 
@@ -63,32 +65,20 @@ export default function UsersPage() {
             dateCreated: u.created_at ? new Date(u.created_at).toLocaleDateString() : "-",
           }))
           setUsers(formatted)
-          setSuccessMessage(`Loaded ${formatted.length} users successfully`)
+          // No toast notification for loading users
+          console.log(`Loaded ${formatted.length} users successfully`)
         } else {
           console.warn("Unexpected API response structure:", data)
           setUsers([])
-          setErrorMessage("No users found")
         }
       } catch (err) {
         console.error("Error fetching users:", err)
         setUsers([])
-        setErrorMessage("Failed to load users. Please try again.")
       }
     }
 
     fetchUsers()
   }, [token])
-
-  // Clear messages after 3 seconds
-  useEffect(() => {
-    if (successMessage || errorMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage("")
-        setErrorMessage("")
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [successMessage, errorMessage])
 
   // Filter and search users
   const filteredUsers = users.filter((user) => {
@@ -107,6 +97,17 @@ export default function UsersPage() {
 
     return true
   })
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, filterRole, filterStatus])
 
   const getStatusBadgeClass = (user_status: string) => {
     switch (user_status) {
@@ -224,10 +225,12 @@ export default function UsersPage() {
         setAdminPassword("")
         setAdminPasswordError("")
 
-        setSuccessMessage(`User ${userToDelete?.firstName} ${userToDelete?.lastName} deleted successfully`)
+        // Toast notification for successful deletion
+        toast.success(`User ${userToDelete?.firstName} ${userToDelete?.lastName} deleted successfully`)
       } catch (err) {
         console.error("Delete error:", err)
-        setErrorMessage("Could not delete user. Please try again.")
+        // Toast notification for deletion error
+        toast.error("Could not delete user. Please try again.")
       } finally {
         setIsDeleting(false)
       }
@@ -245,18 +248,6 @@ export default function UsersPage() {
 
   return (
     <div className="bg-white">
-      {/* Success and Error Messages
-      {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded">
-          <p>{successMessage}</p>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded">
-          <p>{errorMessage}</p>
-        </div>
-      )} */}
-
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-black">User Management</h1>
@@ -271,7 +262,7 @@ export default function UsersPage() {
         </Link>
       </div>
 
-      {/* Test Password Info Banner */}
+      {/* Dummy Password Info */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
         <div className="flex items-center">
           <div className="flex-shrink-0">
@@ -284,11 +275,9 @@ export default function UsersPage() {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Test</h3>
             <div className="mt-1 text-sm text-blue-700">
               <p>
-                For testing purposes, use password: <span className="font-mono bg-blue-100 px-1 rounded">admin123</span>{" "}
-                to delete users.
+                Use password: admin123  to delete users.
               </p>
             </div>
           </div>
@@ -364,8 +353,8 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-black">
                       {user.firstName} {user.lastName}
@@ -415,13 +404,41 @@ export default function UsersPage() {
         {/* Pagination */}
         <div className="px-4 py-3 border-t flex justify-between items-center text-black">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">{filteredUsers.length}</span> of{" "}
-            <span className="font-medium">{users.length}</span> users
+            Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+            <span className="font-medium">{Math.min(endIndex, filteredUsers.length)}</span> of{" "}
+            <span className="font-medium">{filteredUsers.length}</span> users
           </div>
           <div className="flex gap-2">
-            <button className="px-3 py-1 border rounded text-sm disabled:opacity-50">Previous</button>
-            <button className="px-3 py-1 border rounded text-sm bg-blue-50 border-blue-200">1</button>
-            <button className="px-3 py-1 border rounded text-sm disabled:opacity-50">Next</button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+
+            {/* Page numbers */}
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 border rounded text-sm ${
+                    currentPage === page ? "bg-blue-50 border-blue-200 text-blue-600" : "hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>

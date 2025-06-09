@@ -1,32 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Mail, AlertTriangle, Save } from "lucide-react"
-
-
-type PushNotificationSettings = {
-  newShipment: boolean
-}
-
-
-type NotificationSettings = {
-  pushNotifications: PushNotificationSettings
-}
+import { useState, useEffect } from "react"
+import { Bell, AlertTriangle, Save } from "lucide-react"
+import { useNotificationSettings } from "@/contexts/NotificationContext"
 
 export default function NotificationSettings() {
-  const [settings, setSettings] = useState<NotificationSettings>({
-   
-    pushNotifications: {
-      newShipment: true
-    }
-  })
-
-  const [isSaving, setIsSaving] = useState(false)
+  const { settings, updateSettings, isLoading } = useNotificationSettings()
+  const [localSettings, setLocalSettings] = useState(settings)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState("")
 
+  // Update local settings when context settings change
+  useEffect(() => {
+    setLocalSettings(settings)
+  }, [settings])
 
-  const handlePushToggle = (setting: keyof PushNotificationSettings) => {
-    setSettings((prev) => ({
+  const handlePushToggle = (setting: keyof typeof settings.pushNotifications) => {
+    setLocalSettings((prev) => ({
       ...prev,
       pushNotifications: {
         ...prev.pushNotifications,
@@ -34,23 +24,28 @@ export default function NotificationSettings() {
       },
     }))
     setSaveSuccess(false)
+    setSaveError("")
   }
 
   const handleSave = async () => {
-    setIsSaving(true)
     setSaveSuccess(false)
+    setSaveError("")
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const success = await updateSettings(localSettings)
 
-    setIsSaving(false)
-    setSaveSuccess(true)
-
-    // Hide success message after 3 seconds
-    setTimeout(() => {
-      setSaveSuccess(false)
-    }, 3000)
+    if (success) {
+      setSaveSuccess(true)
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess(false)
+      }, 3000)
+    } else {
+      setSaveError("Failed to save notification preferences. Please try again.")
+    }
   }
+
+  // Check if settings have changed
+  const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(settings)
 
   return (
     <div>
@@ -62,10 +57,14 @@ export default function NotificationSettings() {
 
         <button
           onClick={handleSave}
-          disabled={isSaving}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+          disabled={isLoading || !hasChanges}
+          className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+            hasChanges && !isLoading
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          {isSaving ? (
+          {isLoading ? (
             <>
               <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
               Saving...
@@ -86,9 +85,14 @@ export default function NotificationSettings() {
         </div>
       )}
 
+      {saveError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center text-red-700">
+          <AlertTriangle size={20} className="mr-2 flex-shrink-0" />
+          <span>{saveError}</span>
+        </div>
+      )}
+
       <div className="space-y-6">
-
-
         {/* Push Notifications */}
         <div className="bg-white rounded-lg border p-6">
           <div className="flex items-center gap-3 mb-4">
@@ -99,7 +103,7 @@ export default function NotificationSettings() {
           </div>
 
           <div className="space-y-4">
-            {Object.entries(settings.pushNotifications).map(([key, value]) => (
+            {Object.entries(localSettings.pushNotifications).map(([key, value]) => (
               <div key={key} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-800 capitalize">
@@ -112,7 +116,7 @@ export default function NotificationSettings() {
                     type="checkbox"
                     className="sr-only peer"
                     checked={value}
-                    onChange={() => handlePushToggle(key as keyof PushNotificationSettings)}
+                    onChange={() => handlePushToggle(key as keyof typeof settings.pushNotifications)}
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
@@ -120,7 +124,6 @@ export default function NotificationSettings() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   )
@@ -129,11 +132,8 @@ export default function NotificationSettings() {
 // Helper function to get notification descriptions
 function getNotificationDescription(type: string, key: string): string {
   const descriptions: Record<string, Record<string, string>> = {
-    email: {
-      newShipment: "Receive emails when new shipments are created"
-    },
     push: {
-      newShipment: "Receive push notifications for new shipments"
+      newShipment: "Receive push notifications",
     },
   }
 

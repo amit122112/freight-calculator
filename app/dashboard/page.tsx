@@ -1,43 +1,44 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Package, Clock, Check, Plus, Search, AlertCircle } from "lucide-react"
+import { Plus, Search, Package, Truck, Calendar, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { getToken } from "@/lib/auth"
+import { useAuth } from "@/components/AuthProvider"
 
-interface DashboardStats {
-  total_users: number
-  active_users: number
-  inactive_users: number
-  total_shipments: number
-  active_shipments: number
-  inactive_shipments: number
+interface UserShipment {
+  shipment_id: number
+  carrier_name: string
+  transport_name: string
+  price: number
+  created_at: string
+  status: string
+  details: Array<{
+    details_id: number
+    weight: number
+    length: number
+    width: number
+    height: number
+  }>
 }
 
 export default function UserDashboard() {
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    total_users: 0,
-    active_users: 0,
-    inactive_users: 0,
-    total_shipments: 0,
-    active_shipments: 0,
-    inactive_shipments: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [recentShipments, setRecentShipments] = useState<UserShipment[]>([])
+  const [shipmentsLoading, setShipmentsLoading] = useState(true)
 
-  // Fetch dashboard data from API
+  // Fetch user's recent shipments
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const token = getToken()
-        if (!token) {
-          setError("Authentication token not found")
-          return
-        }
+    if (!user?.id) return
 
-        const response = await fetch("https://hungryblogs.com/api/Dashboard", {
+    const fetchUserShipments = async () => {
+      try {
+        setShipmentsLoading(true)
+        const token = getToken()
+        if (!token) return
+
+        const response = await fetch(`https://hungryblogs.com/api/GetShipments?user_id=${user.id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -46,72 +47,55 @@ export default function UserDashboard() {
           },
         })
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        if (data && data.details) {
-          setDashboardStats(data.details)
-        } else {
-          console.warn("Unexpected API response structure:", data)
+        if (response.ok) {
+          const data = await response.json()
+          if (data && data.details) {
+            // Sort by created_at descending and take first 4 for recent, all for stats
+            const sortedShipments = data.details.sort(
+              (a: UserShipment, b: UserShipment) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+            )
+            setRecentShipments(sortedShipments.slice(0, 4))
+          }
         }
       } catch (err) {
-        console.error("Error fetching dashboard data:", err)
-        setError(err instanceof Error ? err.message : "Failed to fetch dashboard data")
+        console.error("Error fetching user shipments:", err)
       } finally {
-        setLoading(false)
+        setShipmentsLoading(false)
       }
     }
 
-    fetchDashboardData()
-  }, [])
+    fetchUserShipments()
+  }, [user])
 
-  // User stats derived from API data
-  const userStats = {
-    activeShipments: dashboardStats.active_shipments,
-    pendingShipments: dashboardStats.inactive_shipments,
-    completedShipments:
-      dashboardStats.total_shipments - (dashboardStats.active_shipments + dashboardStats.inactive_shipments),
+  // Calculate total weight for a shipment
+  const calculateTotalWeight = (details: Array<{ weight: number }>) => {
+    return details.reduce((total, item) => total + (item.weight || 0), 0)
   }
 
-  const recentShipments = [
-    { id: "SH-2001", origin: "Melbourne", destination: "Sydney", status: "In Transit", date: "2023-04-10" },
-    { id: "SH-1986", origin: "Brisbane", destination: "Perth", status: "Delivered", date: "2023-04-05" },
-    { id: "SH-1972", origin: "Sydney", destination: "Adelaide", status: "Processing", date: "2023-04-01" },
-    { id: "SH-1965", origin: "Perth", destination: "Darwin", status: "Pending", date: "2023-03-28" },
-  ]
+  // Calculate quick stats from recent shipments
+  const quickStats = {
+    totalShipments: recentShipments.length,
+    totalValue: recentShipments.reduce((sum, shipment) => sum + (shipment.price || 0), 0),
+    totalWeight: recentShipments.reduce((sum, shipment) => sum + calculateTotalWeight(shipment.details), 0),
+    lastShipmentDate: recentShipments.length > 0 ? recentShipments[0].created_at : null,
+  }
 
   const filteredShipments = searchQuery
     ? recentShipments.filter(
         (shipment) =>
-          shipment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shipment.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shipment.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shipment.status.toLowerCase().includes(searchQuery.toLowerCase()),
+          String(shipment.shipment_id).includes(searchQuery.toLowerCase()) ||
+          shipment.carrier_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          shipment.transport_name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : recentShipments
-
-  const getStatusClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "in transit":
-        return "bg-blue-100 text-blue-800"
-      case "delivered":
-        return "bg-green-100 text-green-800"
-      case "processing":
-        return "bg-purple-100 text-purple-800"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   return (
     <div className="bg-white">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-black">My Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-black">Welcome back, {user?.name || "User"}!</h1>
+          <p className="text-gray-600 mt-1">Manage your shipments and track your logistics</p>
+        </div>
         <Link
           href="/dashboard/new-shipment"
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -121,57 +105,47 @@ export default function UserDashboard() {
         </Link>
       </div>
 
-      {/* Error message if API fetch fails */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center text-red-700">
-          <AlertCircle size={20} className="mr-2 flex-shrink-0" />
-          <span>Error loading dashboard data: {error}</span>
-        </div>
-      )}
-
-      {/* Dashboard stats section */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-black mb-4">Overview</h2>
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      {/* Quick Summary Section */}
+      <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
+        <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
+          <Package className="mr-2 text-blue-600" size={20} />
+          Quick Summary
+        </h2>
+        {shipmentsLoading ? (
+          <div className="flex items-center justify-center h-20">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-100 transform transition-all duration-500 hover:scale-107">
-              <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                  <Package className="text-blue-600" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-medium text-black">Active Shipments</h3>
-                  <p className="text-2xl font-bold text-black">{userStats.activeShipments}</p>
-                </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mx-auto mb-2">
+                <Package className="text-blue-600" size={20} />
               </div>
+              <p className="text-2xl font-bold text-gray-800">{quickStats.totalShipments}</p>
+              <p className="text-sm text-gray-600">Recent Shipments</p>
             </div>
-
-            <div className="bg-yellow-50 p-4 rounded-lg shadow border border-yellow-100 transform transition-all duration-500 hover:scale-107">
-              <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg mr-3">
-                  <Clock className="text-yellow-600" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-medium text-black">Pending Shipments</h3>
-                  <p className="text-2xl font-bold text-gray-800">{userStats.pendingShipments}</p>
-                </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full mx-auto mb-2">
+                <DollarSign className="text-green-600" size={20} />
               </div>
+              <p className="text-2xl font-bold text-gray-800">${quickStats.totalValue.toFixed(2)}</p>
+              <p className="text-sm text-gray-600">Total Value</p>
             </div>
-
-            <div className="bg-green-50 p-4 rounded-lg shadow border border-green-100 transform transition-all duration-500 hover:scale-107">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg mr-3">
-                  <Check className="text-green-600" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-medium text-black">Completed Shipments</h3>
-                  <p className="text-2xl font-bold text-gray-800">{userStats.completedShipments}</p>
-                </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mx-auto mb-2">
+                <Truck className="text-purple-600" size={20} />
               </div>
+              <p className="text-2xl font-bold text-gray-800">{quickStats.totalWeight}kg</p>
+              <p className="text-sm text-gray-600">Total Weight</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mx-auto mb-2">
+                <Calendar className="text-orange-600" size={20} />
+              </div>
+              <p className="text-2xl font-bold text-gray-800">
+                {quickStats.lastShipmentDate ? new Date(quickStats.lastShipmentDate).toLocaleDateString() : "N/A"}
+              </p>
+              <p className="text-sm text-gray-600">Last Shipment</p>
             </div>
           </div>
         )}
@@ -180,7 +154,7 @@ export default function UserDashboard() {
       {/* Recent activity section */}
       <div className="bg-white rounded-lg shadow border">
         <div className="font-semibold p-4 border-b flex justify-between items-center">
-          <h2 className="text-black text-lg">My Shipments</h2>
+          <h2 className="text-black text-lg">My Recent Shipments</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
@@ -193,62 +167,72 @@ export default function UserDashboard() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tracking ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Origin
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Destination
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredShipments.length > 0 ? (
-                filteredShipments.map((shipment, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-blue-600">{shipment.id}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.origin}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.destination}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusClass(shipment.status)}`}>
-                        {shipment.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{shipment.date}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <Link
-                        href={`/dashboard/shipment/${shipment.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        View Details
-                      </Link>
+          {shipmentsLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Shipment ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Carrier
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Transport
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Weight
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredShipments.length > 0 ? (
+                  filteredShipments.map((shipment) => (
+                    <tr key={shipment.shipment_id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-blue-600">#{shipment.shipment_id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{shipment.carrier_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{shipment.transport_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{calculateTotalWeight(shipment.details)}kg</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">${shipment.price}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {new Date(shipment.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <Link
+                          href={`/dashboard/shipments/${shipment.shipment_id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                      {searchQuery ? "No shipments found matching your search." : "No recent shipments found."}
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
-                    No shipments found matching your search.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="p-4 border-t">
-          <Link href="/dashboard/all-shipments" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/dashboard/shipments" className="text-blue-600 hover:text-blue-800 font-medium">
             View All Shipments
           </Link>
         </div>

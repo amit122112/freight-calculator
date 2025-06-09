@@ -13,6 +13,9 @@ export default function MyShipmentsPage() {
   const { user } = useAuth()
   const router = useRouter()
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
   useEffect(() => {
     // Only run on client-side
     if (typeof window === "undefined") return
@@ -84,27 +87,20 @@ export default function MyShipmentsPage() {
     return (
       String(s.shipment_id).includes(query) ||
       String(s.carrier_id).includes(query) ||
-      s.status.toLowerCase().includes(query) ||
       s.details.some((d: any) => String(d.weight).includes(query))
     )
   })
 
-  const getStatusBadge = (status: string) => {
-    const statusColors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-      completed: "bg-blue-100 text-blue-800",
-    }
+  // Pagination logic
+  const totalPages = Math.ceil(filteredShipments.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedShipments = filteredShipments.slice(startIndex, endIndex)
 
-    return (
-      <span
-        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"}`}
-      >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    )
-  }
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   const calculateTotalWeight = (details: any[]) => {
     return details.reduce((total, item) => total + (item.weight || 0), 0)
@@ -135,7 +131,7 @@ export default function MyShipmentsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-800" size={16} />
             <input
               type="text"
-              placeholder="Search by Shipment ID, Status, Carrier ID, or Weight"
+              placeholder="Search by Shipment ID, Carrier ID, or Weight"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-400 text-black rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -165,9 +161,6 @@ export default function MyShipmentsPage() {
                     Shipment ID
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Price
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -185,12 +178,11 @@ export default function MyShipmentsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredShipments.length > 0 ? (
-                  filteredShipments.map((shipment, index) => (
+                {paginatedShipments.length > 0 ? (
+                  paginatedShipments.map((shipment, index) => (
                     <tr key={shipment.shipment_id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-black font-medium">{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-black font-medium">{startIndex + index + 1}</td>
                       <td className="px-4 py-3 text-sm text-black font-medium">#{shipment.shipment_id}</td>
-                      <td className="px-4 py-3 text-sm">{getStatusBadge(shipment.status)}</td>
                       <td className="px-4 py-3 text-sm text-black">${shipment.price}</td>
                       <td className="px-4 py-3 text-sm text-black">{calculateTotalWeight(shipment.details)}kg</td>
                       <td className="px-4 py-3 text-sm text-black">
@@ -220,7 +212,7 @@ export default function MyShipmentsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                       {searchQuery
                         ? "No shipments found matching your search."
                         : "No shipments found. Create your first shipment to get started."}
@@ -232,17 +224,50 @@ export default function MyShipmentsPage() {
           </div>
 
           {/* Footer */}
-          {filteredShipments.length > 0 && (
+          {paginatedShipments.length > 0 && (
             <div className="px-4 py-3 border-t bg-gray-50 flex justify-between items-center">
               <div className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredShipments.length}</span> of{" "}
-                <span className="font-medium">{shipments.length}</span> shipments
+                Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+                <span className="font-medium">{Math.min(endIndex, filteredShipments.length)}</span> of{" "}
+                <span className="font-medium">{filteredShipments.length}</span> shipments
               </div>
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-sm text-blue-600 hover:text-blue-800">
-                  Clear search
+              <div className="flex gap-2 items-center">
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="text-sm text-blue-600 hover:text-blue-800 mr-4">
+                    Clear search
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
                 </button>
-              )}
+
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 border rounded text-sm ${
+                        currentPage === page ? "bg-blue-50 border-blue-200 text-blue-600" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

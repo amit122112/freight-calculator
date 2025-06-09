@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Package, Truck, User, Calendar, DollarSign } from "lucide-react"
+import { ArrowLeft, Package, Truck, User, Calendar, DollarSign, MapPin } from "lucide-react"
 import { useAuth } from "@/components/AuthProvider"
 
 interface ShipmentItem {
@@ -27,6 +27,9 @@ interface ShipmentDetail {
   created_at: string
   user_id: number
   status: string
+  carrier_name: string
+  transport_name: string
+  user_name: string
   details: ShipmentItem[]
 }
 
@@ -37,7 +40,6 @@ export default function ShipmentDetailPage() {
   const [shipment, setShipment] = useState<ShipmentDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     // Only run on client-side
@@ -97,41 +99,11 @@ export default function ShipmentDetailPage() {
     }
   }, [id, user])
 
-  const handleQuoteAction = async (action: "accept" | "reject") => {
-    if (!shipment) return
-
-    setActionLoading(action)
-    try {
-      const token = localStorage.getItem("auth_token")
-      if (!token) {
-        alert("Authentication required. Please log in again.")
-        return
-      }
-
-      // For now, just show a success message since we don't have the actual API endpoint
-      // You can replace this with your actual API call
-      console.log(`${action} quote for shipment ${shipment.shipment_id}`)
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Update local state
-      setShipment((prev) => (prev ? { ...prev, status: action === "accept" ? "approved" : "rejected" } : null))
-
-      alert(`Quote ${action === "accept" ? "accepted" : "rejected"} successfully!`)
-    } catch (error) {
-      console.error(`Error ${action}ing quote:`, error)
-      alert(`Failed to ${action} quote. Please try again.`)
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
   // Calculate total weight and volume
   const totalWeight = shipment?.details.reduce((sum, item) => sum + item.weight, 0) || 0
   const totalVolume = shipment?.details.reduce((sum, item) => sum + item.length * item.width * item.height, 0) || 0
 
-  // Format status for display
+  
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
       pending: "bg-yellow-100 text-yellow-800",
@@ -141,7 +113,7 @@ export default function ShipmentDetailPage() {
     }
 
     const color = statusColors[status] || "bg-gray-100 text-gray-800"
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>{status}</span>
+    return <span className={`px-3 py-1 rounded-full text-sm font-medium ${color}`}>{status}</span>
   }
 
   if (loading) {
@@ -188,68 +160,51 @@ export default function ShipmentDetailPage() {
 
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start mb-6">
-          <h1 className="text-2xl font-bold text-black">Shipment #{shipment.shipment_id}</h1>
-          <div className="flex items-center gap-3">
-            {getStatusBadge(shipment.status)}
-            {shipment.status === "pending" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleQuoteAction("accept")}
-                  disabled={actionLoading !== null}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded font-medium transition-colors flex items-center"
-                >
-                  {actionLoading === "accept" ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                      Accepting...
-                    </>
-                  ) : (
-                    "Accept"
-                  )}
-                </button>
-                <button
-                  onClick={() => handleQuoteAction("reject")}
-                  disabled={actionLoading !== null}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded font-medium transition-colors flex items-center"
-                >
-                  {actionLoading === "reject" ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                      Rejecting...
-                    </>
-                  ) : (
-                    "Reject"
-                  )}
-                </button>
-              </div>
-            )}
+          <div>
+            <h1 className="text-2xl font-bold text-black">Shipment #{shipment.shipment_id}</h1>
+            <p className="text-gray-600 mt-1">Quote Request Details</p>
           </div>
+          <div className="flex items-center gap-3">{getStatusBadge(shipment.status)}</div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Customer Information */}
+          <div className="col-span-1">
+            <h2 className="text-lg font-semibold mb-4 text-black">Customer Information</h2>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <User className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Customer Name</p>
+                  <p className="text-black">{shipment.user_name}</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <Package className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">User ID</p>
+                  <p className="text-black">{shipment.user_id}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Shipment Information */}
           <div className="col-span-1">
             <h2 className="text-lg font-semibold mb-4 text-black">Shipment Information</h2>
             <div className="space-y-3">
               <div className="flex items-start">
-                <Package className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Shipment ID</p>
-                  <p className="text-black">{shipment.shipment_id}</p>
-                </div>
-              </div>
-              <div className="flex items-start">
                 <Truck className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Carrier ID</p>
-                  <p className="text-black">{shipment.carrier_id}</p>
+                  <p className="text-sm font-medium text-gray-700">Carrier</p>
+                  <p className="text-black">{shipment.carrier_name}</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <User className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
+                <MapPin className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700">User ID</p>
-                  <p className="text-black">{shipment.user_id}</p>
+                  <p className="text-sm font-medium text-gray-700">Transport Type</p>
+                  <p className="text-black capitalize">{shipment.transport_name}</p>
                 </div>
               </div>
               <div className="flex items-start">
@@ -262,69 +217,92 @@ export default function ShipmentDetailPage() {
               <div className="flex items-start">
                 <DollarSign className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Price</p>
-                  <p className="text-black">${shipment.price}</p>
+                  <p className="text-sm font-medium text-gray-700">Quoted Price</p>
+                  <p className="text-black text-lg font-semibold">${shipment.price}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Items Details */}
-          <div className="col-span-1 md:col-span-2">
-            <h2 className="text-lg font-semibold mb-4 text-black">Items</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Item #
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Weight (kg)
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Dimensions (m)
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Volume (m³)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {shipment.details.map((item, index) => {
-                    const volume = item.length * item.width * item.height
-                    return (
-                      <tr key={item.details_id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-black">{index + 1}</td>
-                        <td className="px-4 py-3 text-sm text-black">{item.weight}</td>
-                        <td className="px-4 py-3 text-sm text-black">
-                          {item.length} × {item.width} × {item.height}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-black">{volume.toFixed(4)}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+          <div className="col-span-1 md:col-span-3 lg:col-span-1">
+            <h2 className="text-lg font-semibold mb-4 text-black">Items Summary</h2>
+            <div className="space-y-3">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">Total Items</p>
+                <p className="text-xl font-bold text-black">{shipment.details.length}</p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">Total Weight</p>
+                <p className="text-xl font-bold text-black">{totalWeight} kg</p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">Total Volume</p>
+                <p className="text-xl font-bold text-black">{totalVolume.toFixed(4)} m³</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Detailed Items Table */}
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4 text-black">Item Details</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Item #
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Weight (kg)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Length (m)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Width (m)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Height (m)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Volume (m³)
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {shipment.details.map((item, index) => {
+                  const volume = item.length * item.width * item.height
+                  return (
+                    <tr key={item.details_id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-black font-medium">#{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-black">{item.weight}</td>
+                      <td className="px-4 py-3 text-sm text-black">{item.length}</td>
+                      <td className="px-4 py-3 text-sm text-black">{item.width}</td>
+                      <td className="px-4 py-3 text-sm text-black">{item.height}</td>
+                      <td className="px-4 py-3 text-sm text-black">{volume.toFixed(4)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Additional Information */}
         <div className="mt-8 border-t pt-6">
-          <h2 className="text-lg font-semibold mb-4 text-black">Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Total Items</p>
-              <p className="text-xl font-bold text-black">{shipment.details.length}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-md font-semibold mb-2 text-black">Address Information</h3>
+              <p className="text-sm text-gray-600">Address ID: {shipment.address_id}</p>
+              <p className="text-sm text-gray-600">Shipment Address ID: {shipment.shipment_address_id}</p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Total Weight</p>
-              <p className="text-xl font-bold text-black">{totalWeight} kg</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Total Volume</p>
-              <p className="text-xl font-bold text-black">{totalVolume.toFixed(4)} m³</p>
+            <div>
+              <h3 className="text-md font-semibold mb-2 text-black">System Information</h3>
+              <p className="text-sm text-gray-600">Last Updated: {new Date(shipment.updated_at).toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Transport ID: {shipment.transport_id}</p>
+              <p className="text-sm text-gray-600">Carrier ID: {shipment.carrier_id}</p>
             </div>
           </div>
         </div>

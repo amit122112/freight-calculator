@@ -78,35 +78,37 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
   const [showAdminPassword, setShowAdminPassword] = useState(false)
   const token = getToken()
 
+  // Add debugging
+  console.log("Current formData.phone:", formData.phone)
+  console.log("Current phoneWithoutCode:", phoneWithoutCode)
+
   // Initialize phone number properly for editing
   useEffect(() => {
+    console.log("InitialData useEffect triggered:", { isEditing, initialData })
+
     if (isEditing && initialData?.phone) {
-      console.log("Initial phone data:", initialData.phone)
+      console.log("Processing initial phone data:", initialData.phone)
 
-      // Get the country code for the current country
-      const countryCode = countryCodes[formData.country] || "+61"
+      // Simply extract digits from the phone number
+      const phoneDigits = initialData.phone.replace(/\D/g, "")
+      console.log("Initial phone digits:", phoneDigits)
 
-      // Check if the phone number already has a country code
-      if (initialData.phone.startsWith("+")) {
-        // Phone has country code - extract the number part
-        let phoneOnly = initialData.phone
-        if (phoneOnly.startsWith(countryCode)) {
-          phoneOnly = phoneOnly.substring(countryCode.length).trim()
-        }
-
-        // Remove any spaces or formatting
-        phoneOnly = phoneOnly.replace(/\s+/g, "")
-        setPhoneWithoutCode(phoneOnly)
-      } else {
-        // Phone doesn't have country code - use as is
-        // Remove any spaces or non-digit characters
-        const cleanPhone = initialData.phone.replace(/\D/g, "")
-        setPhoneWithoutCode(cleanPhone)
+      // If it starts with 61 (Australia country code), remove it
+      let cleanPhone = phoneDigits
+      if (phoneDigits.startsWith("61") && phoneDigits.length > 9) {
+        cleanPhone = phoneDigits.substring(2)
+        console.log("Removed country code from initial:", cleanPhone)
       }
 
-      console.log("Phone without code set to:", phoneWithoutCode)
+      // Take only the last 9 digits
+      cleanPhone = cleanPhone.slice(-9)
+      console.log("Final clean phone from initial:", cleanPhone)
+
+      setPhoneWithoutCode(cleanPhone)
+    } else {
+      console.log("No initial phone data to process")
     }
-  }, [isEditing, initialData?.phone, formData.country])
+  }, [isEditing, initialData])
 
   // Fix for edit form - ensure status is properly set from initial data
   useEffect(() => {
@@ -119,6 +121,106 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
       }))
     }
   }, [isEditing, initialData])
+
+  // Fetch user data if editing and userId is provided but no initialData
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isEditing && userId && (!initialData || Object.keys(initialData).length === 0 || !initialData.phone)) {
+        try {
+          console.log("Fetching user data for userId:", userId)
+          console.log("InitialData contents:", initialData)
+          const token = getToken()
+          if (!token) {
+            console.error("No auth token found")
+            return
+          }
+
+          const response = await fetch(`https://hungryblogs.com/api/GetUser/?id=${userId}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch user data: ${response.status}`)
+          }
+
+          const data = await response.json()
+          console.log("Full API response:", data)
+
+          const userDetails = data.details?.[0]
+          console.log("User details:", userDetails)
+
+          if (userDetails) {
+            // Extract phone number without country code
+            let phoneWithoutCountryCode = ""
+            if (userDetails.phone_number) {
+              console.log("Raw API phone number:", userDetails.phone_number)
+              console.log("Type of phone number:", typeof userDetails.phone_number)
+
+              // Simply extract digits from the phone number
+              const phoneDigits = userDetails.phone_number.replace(/\D/g, "")
+              console.log("Phone digits extracted:", phoneDigits)
+
+              // If it starts with 61 (Australia country code), remove it
+              let cleanPhone = phoneDigits
+              if (phoneDigits.startsWith("61") && phoneDigits.length > 9) {
+                cleanPhone = phoneDigits.substring(2)
+                console.log("Removed country code, clean phone:", cleanPhone)
+              }
+
+              // Take only the last 9 digits
+              cleanPhone = cleanPhone.slice(-9)
+              console.log("Final clean phone (last 9 digits):", cleanPhone)
+
+              phoneWithoutCountryCode = cleanPhone
+            } else {
+              console.log("No phone_number found in user details")
+            }
+
+            console.log("Setting phoneWithoutCode to:", phoneWithoutCountryCode)
+            setPhoneWithoutCode(phoneWithoutCountryCode)
+
+            const newFormData = {
+              firstName: userDetails.first_name || "",
+              lastName: userDetails.last_name || "",
+              email: userDetails.email || "",
+              role: userDetails.user_role || "user",
+              status: userDetails.user_status || "active",
+              company: userDetails.company || "",
+              phone: userDetails.phone_number || "",
+              password: "",
+              confirmPassword: "",
+              address: userDetails.street || "",
+              city: userDetails.city || "",
+              state: userDetails.state || "Victoria",
+              zipCode: userDetails.zip_code || "",
+              country: userDetails.country || "Australia",
+              commission: userDetails.commission || 0,
+            }
+
+            console.log("Setting form data:", newFormData)
+            setFormData(newFormData)
+          } else {
+            console.log("No user details found in response")
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error)
+        }
+      } else {
+        console.log("Not fetching user data:", {
+          isEditing,
+          userId,
+          hasInitialData: initialData && Object.keys(initialData).length > 0,
+        })
+      }
+    }
+
+    fetchUserData()
+  }, [isEditing, userId, initialData])
 
   // Check for duplicate phone numbers
   const checkPhoneNumber = async (phone: string) => {
@@ -338,7 +440,8 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
         last_name: formData.lastName,
         email: formData.email,
         user_role: formData.role,
-        company: formData.company?.trim() || "", // Send empty string instead of null
+        // Only include company if it has a value
+        ...(formData.company?.trim() ? { company: formData.company.trim() } : {}),
         phone_number: formData.phone,
         street: formData.address,
         city: formData.city || "", // Ensure city is always a string
@@ -369,6 +472,14 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
       }
 
       setSubmitSuccess(true)
+
+      // Replace these lines in handleSubmit:
+      // Toast notification for successful user creation/update
+      if (isEditing) {
+        console.log(`User ${formData.firstName} ${formData.lastName} updated successfully`)
+      } else {
+        console.log(`User ${formData.firstName} ${formData.lastName} created successfully`)
+      }
 
       // Reset form or redirect after success
       setTimeout(() => {
@@ -468,7 +579,7 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => handleAdminConfirmation(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-gray-700"
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 text-black"
               >
                 Cancel
               </button>
@@ -740,7 +851,6 @@ export default function UserForm({ initialData, isEditing = false, userId }: Use
             {(errors.phone || phoneCheckError) && (
               <p className="mt-1 text-sm text-red-500">{errors.phone || phoneCheckError}</p>
             )}
-            <p className="mt-1 text-sm text-gray-600">Enter 9 digits (e.g., 412345678)</p>
           </div>
         </div>
 

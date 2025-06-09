@@ -24,7 +24,7 @@ export function ProtectedRoute({ children, requiredRole, redirectTo = "/login" }
       }
 
       if (requiredRole && user.user_role !== requiredRole) {
-        router.push("/unauthorized")
+        router.push("/login")
         return
       }
     }

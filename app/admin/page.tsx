@@ -14,6 +14,22 @@ interface DashboardStats {
   inactive_shipments: number
 }
 
+interface QuoteRequest {
+  shipment_id: number
+  user_name: string
+  carrier_name: string
+  transport_name: string
+  price: number
+  created_at: string
+  details: Array<{
+    details_id: number
+    weight: number
+    length: number
+    width: number
+    height: number
+  }>
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth()
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
@@ -24,7 +40,9 @@ export default function AdminDashboard() {
     active_shipments: 0,
     inactive_shipments: 0,
   })
+  const [recentQuotes, setRecentQuotes] = useState<QuoteRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [quotesLoading, setQuotesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -95,6 +113,55 @@ export default function AdminDashboard() {
 
     fetchDashboardData()
   }, [mounted, user])
+
+  // Fetch recent quote requests
+  useEffect(() => {
+    if (!mounted || !user || user?.user_role !== "admin") {
+      return
+    }
+
+    const fetchRecentQuotes = async () => {
+      try {
+        setQuotesLoading(true)
+        const token = getToken()
+        if (!token) return
+
+        const response = await fetch("https://hungryblogs.com/api/GetShipments", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data && data.details) {
+            // Sort by created_at descending and take first 3
+            const sortedQuotes = data.details
+              .sort(
+                (a: QuoteRequest, b: QuoteRequest) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+              )
+              .slice(0, 3)
+            setRecentQuotes(sortedQuotes)
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching recent quotes:", err)
+      } finally {
+        setQuotesLoading(false)
+      }
+    }
+
+    fetchRecentQuotes()
+  }, [mounted, user])
+
+  // Calculate total weight for a shipment
+  const calculateTotalWeight = (details: Array<{ weight: number }>) => {
+    return details.reduce((total, item) => total + (item.weight || 0), 0)
+  }
 
   // If not mounted yet, return null to avoid hydration issues
   if (!mounted) {
@@ -229,57 +296,64 @@ export default function AdminDashboard() {
 
       {/* Recent activity section */}
       <div>
-        <h2 className="text-lg text-black font-semibold mb-4">Recent Activity</h2>
+        <h2 className="text-lg text-black font-semibold mb-4">Recent Quote Requests</h2>
         <div className="bg-white rounded-lg shadow border">
-          <div className="p-4 border-b">
-            <h3 className="font-medium text-black">Latest Shipments</h3>
-          </div>
+          
           <div className="p-4">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    SHIPMENT-ID
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Origin
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Destination
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="px-4 py-3 text-sm text-gray-900">Example 1</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Sydney</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Melbourne</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">In Transit</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-sm text-gray-900">Example 2</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Brisbane</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Perth</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Processing</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-sm text-gray-900">Example 3</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Adelaide</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">Darwin</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {quotesLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : recentQuotes.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Shipment ID
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Carrier
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Weight
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {recentQuotes.map((quote) => (
+                    <tr key={quote.shipment_id}>
+                      <td className="px-4 py-3 text-sm font-medium text-blue-600">#{quote.shipment_id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{quote.user_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{quote.carrier_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{calculateTotalWeight(quote.details)}kg</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">${quote.price}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {new Date(quote.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="text-center text-gray-500 py-8">No recent quote requests found.</div>
+            )}
           </div>
+          {recentQuotes.length > 0 && (
+            <div className="p-4 border-t">
+              <a href="/admin/quotes" className="text-blue-600 hover:text-blue-800 font-medium">
+                View All Quote Requests
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
