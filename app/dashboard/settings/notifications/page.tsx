@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, AlertTriangle, Save } from "lucide-react"
+import { Bell, Mail, AlertTriangle, Save } from "lucide-react"
 import { useNotificationSettings } from "@/context/NotificationContext"
 
 
